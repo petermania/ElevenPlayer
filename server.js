@@ -1,6 +1,6 @@
 "use strict"
 
-var DMX = require('./dmx');
+var DMX = require('./modules/dmx/dmx');
 var A = DMX.Animation;
 var player = require('play-sound')('afplay')
 

@@ -2,17 +2,18 @@
 		"name":		   "ElevenPlayer",
 		"version":	   "0.0.1",
 		"author":	   "Scott Peterman & Leif Percifield",
-		"description": "Eleven Player Controller App",
+		"description": "ElevenPlayer Controller App",
 		"main":		   "server.js",
 
 		"repository": {
 				"type": "git",
-				"url": "n"
+				"url": "https://github.com/petermania/ElevenPlayer"
 		},
 		"dependencies": {
-				"serialport": "4.0.6",
+				"serialport": "4.0.x",
 				"dmx":"0.0.4",
-				"express":"3.4.x"
+				"express":"3.4.x",
+				"play-sound":"1.1.x"
 		},
 		"licenses": [
 				{
