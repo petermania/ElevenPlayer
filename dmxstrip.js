@@ -105,7 +105,7 @@ for (var i = 0; i < 216; i++) {
 
 function startAnimation(time) {
     var x = new A()
-        .add(colorObj("red"), time)
+        .add(colorObj("red"), time,{easing:inElastic})
         .add(colorObj("off"), time)
         .add(colorObj("green"), time)
         .add(colorObj("off"), time)
