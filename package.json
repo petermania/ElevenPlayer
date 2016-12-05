@@ -1,24 +1,24 @@
 {
-		"name":		   "ElevenPlayer",
-		"version":	   "0.0.1",
-		"author":	   "Scott Peterman & Leif Percifield",
-		"description": "ElevenPlayer Controller App",
-		"main":		   "server.js",
-
-		"repository": {
-				"type": "git",
-				"url": "https://github.com/petermania/ElevenPlayer"
-		},
-		"dependencies": {
-				"serialport": "4.0.x",
-				"dmx":"0.0.4",
-				"express":"3.4.x",
-				"play-sound":"1.1.x"
-		},
-		"licenses": [
-				{
-						"name": "MIT",
-						"url": "http://www.opensource.org/licenses/mit-license.php"
-				}
-		]
+  "name": "ElevenPlayer",
+  "version": "0.0.1",
+  "author": "Scott Peterman & Leif Percifield",
+  "description": "ElevenPlayer Controller App",
+  "main": "server.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/petermania/ElevenPlayer"
+  },
+  "dependencies": {
+    "serialport": "4.0.x",
+    "dmx": "0.0.4",
+    "express": "3.4.x",
+    "play-sound": "1.1.x",
+    "color": "~1.0.1"
+  },
+  "licenses": [
+    {
+      "name": "MIT",
+      "url": "http://www.opensource.org/licenses/mit-license.php"
+    }
+  ]
 }
