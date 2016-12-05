@@ -1,0 +1,23 @@
+{
+		"name":		   "ElevenPlayer",
+		"version":	   "0.0.1",
+		"author":	   "Scott Peterman & Leif Percifield",
+		"description": "Eleven Player Controller App",
+		"main":		   "server.js",
+
+		"repository": {
+				"type": "git",
+				"url": "n"
+		},
+		"dependencies": {
+				"serialport": "4.0.6",
+				"dmx":"0.0.4",
+				"express":"3.4.x"
+		},
+		"licenses": [
+				{
+						"name": "MIT",
+						"url": "http://www.opensource.org/licenses/mit-license.php"
+				}
+		]
+}
