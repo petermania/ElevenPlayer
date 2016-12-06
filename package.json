@@ -9,10 +9,14 @@
     "url": "https://github.com/petermania/ElevenPlayer"
   },
   "dependencies": {
-    "serialport": "4.0.x",
+    "assert": "^1.4.1",
+    "body-parser": "1.15.x",
+    "connect-busboy": "0.0.2",
     "dmx": "0.0.4",
-    "express": "3.4.x",
-    "play-sound": "1.1.x",
+    "express": "^3.4.8",
+    "mongodb": "^2.2.12",
+    "play-sound": "^1.1.1",
+    "serialport": "^4.0.6",
     "color": "~1.0.1"
   },
   "licenses": [
