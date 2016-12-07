@@ -2,17 +2,22 @@
 
 var express=require('express')
 var app=express()
-var DMX = require('./modules/dmx/dmx');
-var player = require('play-sound')('afplay')
-var busboy = require('connect-busboy')
-
-var MongoClient = require('mongodb').MongoClient
-var assert = require('assert')
-var fs = require('fs')
 
 var server = app.listen(8080,function(){
   console.log("listening on port 8080")
 })
+
+var async = require('async')
+var DMX = require('./modules/dmx/dmx');
+var play=require('audio-play')
+var load=require('audio-loader')
+var context=require('audio-context')
+var busboy = require('connect-busboy')
+var io = require('socket.io')(server)
+var MongoClient = require('mongodb').MongoClient
+var assert = require('assert')
+var fs = require('fs')
+var loudness = require('loudness');
 
 var url = 'mongodb://localhost:27017/ElevenPlayer'
 
@@ -26,9 +31,114 @@ var universe = dmx.addUniverse('1', 'enttec-usb-dmx-pro', '/dev/cu.usbserial-EN1
 var on = false
 
 var song
-var songs=[]
+var songs
+var playback
+var pause
 var currentValue=0
-var songpath='/public/music/'
+var currentNumber=0
+var songpath=__dirname+'/public/music/'
+var knobTimer = 10000
+var timerCount=new Date().getTime()
+var currentTime=new Date().getTime()
+var prevNumber=0;
+var reset=false
+var pause ={}
+var tracks = []
+
+var setupSongs=function(){
+  MongoClient.connect(url, function(err, db) {
+    var count=0
+    assert.equal(null, err)
+    console.log("Connected successfully to db server to load songs")
+    var col=db.collection('numbers')
+    var songs_col=db.collection('songs')
+    var trackObj = {}
+    var count=1
+    songs_col.find().sort({'song_group':1}).toArray(function(err,obj){
+      console.log(obj)
+      for(var i=0;i<obj.length;i++){
+        trackObj[i.toString()]=obj[i].url
+      }
+      console.log(trackObj)
+      console.log("loading songs...")
+      load(trackObj,{from:songpath}).then(function(audio){
+        playback=audio
+        console.log(playback)
+        songSelection()
+      })
+    })
+    //   async.parallel({
+    //     numbers_one: function(callback) {
+    //       col.find({"song_group":1}).toArray(function(err,obj){
+    //         callback(err,obj)
+    //       })
+    //     },
+    //     songs_one: function(callback) {
+    //       songs_col.find({"song_group":1}).toArray(function(err,obj){
+    //         callback(err,obj)
+    //       })
+    //     },
+    //     numbers_two: function(callback) {
+    //       col.find({"song_group":2}).toArray(function(err,obj){
+    //         callback(err,obj)
+    //       })
+    //     },
+    //     songs_two: function(callback) {
+    //       songs_col.find({"song_group":2}).toArray(function(err,obj){
+    //         callback(err,obj)
+    //       })
+    //     },
+    //     numbers_three: function(callback) {
+    //       col.find({"song_group":3}).toArray(function(err,obj){
+    //         callback(err,obj)
+    //       })
+    //     },
+    //     songs_three: function(callback) {
+    //       songs_col.find({"song_group":3}).toArray(function(err,obj){
+    //         callback(err,obj)
+    //       })
+    //     },
+    //     numbers_four: function(callback) {
+    //       col.find({"song_group":4}).toArray(function(err,obj){
+    //         callback(err,obj)
+    //       })
+    //     },
+    //     songs_four: function(callback) {
+    //       songs_col.find({"song_group":4}).toArray(function(err,obj){
+    //         callback(err,obj)
+    //       })
+    //     }
+    // }, function(err, results) {
+    //   if(results.songs_one.length!=0){
+    //     console.log("radomizing tracks")
+    //     var ss_one=shuffle(results.songs_one)
+    //     var ss_two=shuffle(results.songs_two)
+    //     var ss_three=shuffle(results.songs_three)
+    //     var ss_four=shuffle(results.songs_four)
+    //     console.log("tracks radomized")
+    //     for(var i=0;i<results.numbers_one.length;i++){
+    //       trackObj[results.numbers_one[i].number.toString()]=ss_one[i].url
+    //     }
+    //     for(var i=0;i<results.numbers_two.length;i++){
+    //       trackObj[results.numbers_two[i].number.toString()]=ss_two[i].url
+    //     }
+    //     for(var i=0;i<results.numbers_three.length;i++){
+    //       trackObj[results.numbers_three[i].number.toString()]=ss_three[i].url
+    //     }
+    //     for(var i=0;i<results.numbers_four.length;i++){
+    //       trackObj[results.numbers_four[i].number.toString()]=ss_four[i].url
+    //     }
+    //     console.log("loading tracks")
+    //     load(trackObj,{from:songpath}).then(function(audio){
+    //       playback=audio
+    //       console.log("tracks loaded")
+    //     })
+    //   }
+    // })
+  })
+}
+
+setupSongs()
 
 app.get('/',function(req,res){
   MongoClient.connect(url, function(err, db) {
@@ -47,16 +157,23 @@ app.get('/',function(req,res){
             'upper_address':0,
             'lower_value':0,
             'upper_value':0,
-            'red':255,
-            'green':255,
-            'blue':255
+            'activeColor':{
+              'red':255,
+              'green':255,
+              'blue':255
+            },
+            'standbyColor':{
+              'red':255,
+              'green':255,
+              'blue':255
+            }
           },function(){
             count++
             if(count==11){
               "db items created"
-              var songs=loadSongs(db, function(){
+              loadSongs(db, function(){
                 db.close()
-                res.render('index',{settings:obj, currentValue:1, title:'ElevenPlayer Calibration'})
+                res.render('index',{settings:obj, currentValue:0, currentNumber:0, title:'ElevenPlayer Calibration'})
               })
             }
           })
@@ -66,8 +183,8 @@ app.get('/',function(req,res){
         "db items found"
         loadSongs(db, function(){
           db.close()
-          console.log(songs)
-          res.render('index',{settings:obj, songs:songs, currentValue:1, title:'ElevenPlayer Calibration'})
+          console.log(obj)
+          res.render('index',{settings:obj, songs:songs, currentValue:0,currentNumber:0, title:'ElevenPlayer Calibration'})
         })
       }
     })//find all numbers
@@ -79,7 +196,7 @@ app.post('/upload',function(req,res){
   req.pipe(req.busboy);
   req.busboy.on('file', function (fieldname, file, filename) {
     console.log("Uploading: " + filename);
-    fstream = fs.createWriteStream(__dirname + songpath + filename);
+    fstream = fs.createWriteStream(songpath + filename);
     file.pipe(fstream);
     fstream.on('close', function () {
       MongoClient.connect(url, function(err, db) {
@@ -114,9 +231,16 @@ app.get('/save-settings',function(req,res){
         upper_address:parseInt(req.query.upper_address),
         lower_value:parseInt(req.query.lower_value),
         upper_value:parseInt(req.query.upper_value),
-        red:parseInt(req.query.red),
-        green: parseInt(req.query.green),
-        blue:parseInt(req.query.blue)
+        activeColor:{
+          red:parseInt(req.query.activeRed),
+          green: parseInt(req.query.activeGreen),
+          blue:parseInt(req.query.activeBlue)
+        },
+        standbyColor:{
+          red:parseInt(req.query.standbyRed),
+          green: parseInt(req.query.standbyGreen),
+          blue:parseInt(req.query.standbyBlue)
+        }
       }
       },
       {upsert:false},
@@ -148,19 +272,30 @@ app.get('/save-songs', function(req,res){
   })
 })
 
+io.on('connection', function(client) {
+    console.log('Client connected...');
+    client.on('send_knob', function(data) {
+      timerCount= new Date().getTime()
+      // console.log("knob updated from client")
+      // console.log(data)
+      currentValue=data.currentValue
+      adjustKnob()
+    });
+});
+
 var loadSongs = function(db, callback){
   var col_songs=db.collection('songs')
   col_songs.find().sort({"song_group": 1}).toArray(function(err_songs,obj_songs){
     if(obj_songs.length==0){
-      fs.readdir(__dirname + songpath, (err, files) => {
+      fs.readdir(songpath, (err, files) => {
         console.log(files.length)
         if(files.length>0){
           var count=0
-          console.log(__dirname + songpath)
+          console.log(songpath)
           console.log("generating song db")
           files.forEach(file => {
             if(! /^\..*/.test(file)) {
-              console.log(file)
+              // console.log(file)
               col_songs.insertOne({
                 'url':file,
                 'song_group':1,
@@ -195,34 +330,181 @@ var loadSongs = function(db, callback){
   })
 }
 
-// setInterval(function(){
-//   if(on){
-//     if(song!=undefined) {
-//       song.kill()
-//       console.log("killing")
-//     }
-//     var data = {}
-//     for(var i=0;i<216;i++){
-//       var num=i.toString()
-//       data[i]=250
-//     }
-//     on = false
-//     universe.update(data)
-//     console.log("off")
-//   }
-//
-//   else{
-//     song=player.play('public/music/cantbuymelove.mp3', function(err){
-//       if (err&&!err.killed) throw err
-//     })
-//     var data = {}
-//     for(var i=0;i<216;i++){
-//       var num=i.toString()
-//       data[i]=0
-//     }
-//     console.log(data)
-//     on = true
-//     universe.update(data)
-//     console.log("on")
-//   }
-// }, 1000);
+var checkTime = function(){
+  currentTime = new Date().getTime()
+  if(currentTime-timerCount>knobTimer&&currentValue!=0&&reset==false){
+    resetKnob()
+  }
+  if(reset==true&&currentValue==0){
+    knobZero()
+  }
+  else if(reset==true){
+    currentValue--
+    adjustKnob()
+    io.emit('receive_knob',{currentValue:currentValue,currentNumber:currentNumber})
+  }
+}
+
+var resetKnob=function(){
+    reset=true
+    if(currentNumber!=0) {
+      console.log("closing track "+prevNumber)
+      pause[tracks[currentNumber-1].toString()].pause()
+    }
+}
+
+var knobZero=function(){
+  reset=false
+  currentNumber=0
+  console.log("knob has reached 0 Position")
+  songSelection()
+  io.emit('receive_knob',{currentValue:currentValue,currentNumber:currentNumber})
+}
+
+var adjustKnob=function(){
+  MongoClient.connect(url, function(err, db) {
+    assert.equal(null, err)
+    // console.log("Connected successfully to db server to check values")
+    var col=db.collection('numbers')
+    col.find().sort({"lower_value": 1}).toArray(function(err,obj){
+      for(var i=0;i<obj.length;i++){
+        // console.log(obj[i])
+        if(currentValue>=obj[i].lower_value&&currentValue<=obj[i].upper_value){
+          if(currentNumber!=obj[i].number){
+            var direction
+            if(currentNumber>obj[i].number) direction=0
+            else if(currentNumber<obj[i].number) direction=1
+            changeNumber(col,direction,obj[i].number,function(){
+              db.close()
+            })
+          }
+        }
+      }
+    })
+  })
+}
+
+var changeNumber=function(col,direction,num,callback){
+  console.log(currentNumber)
+  // playback[currentNumber].pause()
+  prevNumber=parseInt(currentNumber)
+  currentNumber=parseInt(num)
+  col.findOne({'number':num},function(err, cur_song){
+    console.log(cur_song)
+    console.log("number updated to: "+currentNumber)
+    io.emit('receive_knob',{currentValue:currentValue,currentNumber:currentNumber})
+    if(reset==false){
+        if(prevNumber!=0) {
+          console.log("closing track "+prevNumber)
+          pause[tracks[prevNumber-1].toString()].pause()
+        }
+        pause[tracks[currentNumber-1].toString()]=play(playback[tracks[currentNumber-1].toString()])
+        callback()
+    }
+  })
+}
+
+function shuffle(array) {
+  var currentIndex = array.length, temporaryValue, randomIndex;
+
+  // While there remain elements to shuffle...
+  while (0 !== currentIndex) {
+
+    // Pick a remaining element...
+    randomIndex = Math.floor(Math.random() * currentIndex);
+    currentIndex -= 1;
+
+    // And swap it with the current element.
+    temporaryValue = array[currentIndex];
+    array[currentIndex] = array[randomIndex];
+    array[randomIndex] = temporaryValue;
+  }
+
+  return array;
+}
+
+setInterval(checkTime,100)
+
+function songSelection(){
+  MongoClient.connect(url, function(err, db) {
+    assert.equal(null, err)
+    console.log("Connected successfully to db server to load page")
+    var col=db.collection('numbers')
+    var song_col=db.collection('songs')
+    var oneGroup = []
+    var twoGroup = []
+    var threeGroup = []
+    var fourGroup = []
+    song_col.find().sort({"song_group":1}).toArray(function(err,obj){
+      if(obj.length!=0){
+        for (var i=0;i<obj.length;i++){
+          if(obj[i].song_group==1) {
+            oneGroup.push(i.toString())
+          }
+          if(obj[i].song_group==2) {
+            twoGroup.push(i.toString())
+          }
+          if(obj[i].song_group==3) {
+            threeGroup.push(i.toString())
+          }
+          if(obj[i].song_group==4) {
+            fourGroup.push(i.toString())
+          }
+        }
+        oneGroup=shuffle(oneGroup)
+        twoGroup=shuffle(twoGroup)
+        threeGroup=shuffle(threeGroup)
+        fourGroup=shuffle(fourGroup)
+        console.log(oneGroup)
+        console.log(twoGroup)
+        console.log(threeGroup)
+        console.log(fourGroup)
+
+        async.parallel({
+          one: function(callback) {
+              col.find({"song_group":1}).sort({"number":1}).toArray(function(err,obj){
+                callback(null,obj)
+              })
+          },
+          two: function(callback){
+            col.find({"song_group":2}).sort({"number":1}).toArray(function(err,obj){
+              callback(null,obj)
+            })
+        },
+        three: function(callback){
+          col.find({"song_group":3}).sort({"number":1}).toArray(function(err,obj){
+            callback(null,obj)
+          })
+        },
+        four: function(callback){
+          col.find({"song_group":4}).sort({"number":1}).toArray(function(err,obj){
+            callback(null,obj)
+          })
+        }
+        },function(err,results){
+          var count=0
+          tracks=[]
+          for(var i=0;i<results.one.length;i++){
+            console.log(oneGroup[i])
+            tracks.push(oneGroup[i])
+          }
+          for(var i=0;i<results.two.length;i++){
+            tracks.push(twoGroup[i])
+          }
+          for(var i=0;i<results.three.length;i++){
+            tracks.push(threeGroup[i])
+          }
+          for(var i=0;i<results.four.length;i++){
+            tracks.push(fourGroup[i])
+          }
+          console.log(tracks)
+        })
+
+        // tracks=oneGroup.concat(twoGroup).concat(threeGroup).concat(fourGroup)
+
+
+      }
+    })
+
+  })
+}

@@ -4,8 +4,22 @@ div.container
     div.card(style={'margin-top':'10px'})
       h3.card-header Knob Settings
       div.card-block
+        div.form-group.row
+          div.col-xs-4
+            div.btn-group(role="group")
+              button.btn.btn-large.btn-success(name="knob" type="submit", value="up") Up
+              button.btn.btn-large.btn-danger(name="knob", type="submit", value="down") Down
+          div.col-xs-8
+            div.input-group
+              span.input-group-addon Current Value
+              input(type="text", class="form-control", value=currentValue, name="current_knob" 'aria-describedby'="basic-addon1", readonly)
+        div.form-group.row
+          div.col-xs-12
+            div.input-group
+              span.input-group-addon Current Number
+              input(type="text", class="form-control", value=currentNumber, name="current_active" 'aria-describedby'="basic-addon1", readonly)
         form.form-horizontal(action="/save-settings", method="get")
-          div.form-group.row
+          div.form-group.row(style={"border-bottom":"solid 1px rgb(220,220,220)","padding-bottom":'20px'})
             div.col-xs-12
               div.input-group
                 span.input-group-addon Timer
@@ -62,20 +76,36 @@ div.container
                 input(type="text", class="form-control", value=settings[0]["upper_address"], 'aria-describedby'="basic-addon1", name='upper_address')
           div.form-group.row
             div.col-xs-12
-              input(type="text", class="form-control", value="Current Color", 'aria-describedby'="basic-addon1", name='color', readonly)
+              input(type="text", class="form-control", value="Active Color", 'aria-describedby'="basic-addon1", name='activeColor', readonly)
           div.form-group.row
             div.col-xs-4
               div.input-group
                 span.input-group-addon Red
-                input(type="text", class="form-control set-color", value=settings[0]["red"], 'aria-describedby'="basic-addon1", name='red')
+                input(type="text", class="form-control set-active-color", value=settings[0]['activeColor']["red"], 'aria-describedby'="basic-addon1", name='activeRed')
             div.col-xs-4
               div.input-group
                 span.input-group-addon Green
-                input(type="text", class="form-control set-color", value=settings[0]["green"], 'aria-describedby'="basic-addon1", name='green')
+                input(type="text", class="form-control set-active-color", value=settings[0]['activeColor']["green"], 'aria-describedby'="basic-addon1", name='activeGreen')
             div.col-xs-4
               div.input-group
                 span.input-group-addon Blue
-                input(type="text", class="form-control set-color", value=settings[0]["blue"], 'aria-describedby'="basic-addon1", name='blue')
+                input(type="text", class="form-control set-active-color", value=settings[0]['activeColor']["blue"], 'aria-describedby'="basic-addon1", name='activeBlue')
+          div.form-group.row
+            div.col-xs-12
+              input(type="text", class="form-control", value="Standby Color", 'aria-describedby'="basic-addon1", name='standbyColor', readonly)
+          div.form-group.row
+            div.col-xs-4
+              div.input-group
+                span.input-group-addon Red
+                input(type="text", class="form-control set-standby-color", value=settings[0]['standbyColor']["red"], 'aria-describedby'="basic-addon1", name='standbyRed')
+            div.col-xs-4
+              div.input-group
+                span.input-group-addon Green
+                input(type="text", class="form-control set-standby-color", value=settings[0]['standbyColor']["green"], 'aria-describedby'="basic-addon1", name='standbyGreen')
+            div.col-xs-4
+              div.input-group
+                span.input-group-addon Blue
+                input(type="text", class="form-control set-standby-color", value=settings[0]['standbyColor']["blue"], 'aria-describedby'="basic-addon1", name='standbyBlue')
           div.form-group.row
             div.col-xs-4
               button.btn.btn-large.btn-success(name="action", type="submit", value="save") Save Settings
@@ -93,28 +123,31 @@ div.container
   div.col-xs-12.col-md-6
     div.card(style={'margin-top':'10px'})
       h3.card-header Song Settings
-      div.card-block
-        each song in songs
-          form.form-horizontal(action="/save-songs", method="get")
-            div.form-group.row
-              div.col-xs-12
-                div.input-group
-                  span.input-group-addon Song
-                  input(type="text", class="form-control", value=song.url, 'aria-describedby'="basic-addon1", name='url',readonly)
-            div.form-group.row
-              div.col-xs-6
-                div.input-group
-                  span.input-group-addon Song Group
-                  input(type="text", class="form-control", value=song.song_group, 'aria-describedby'="basic-addon1", name='song_group')
-              div.col-xs-6
-                div.input-group
-                  span.input-group-addon Volume
-                  input(type="text", class="form-control", value=song.volume, 'aria-describedby'="basic-addon1", name='volume')
-            div.form-group.row
-              div.col-xs-12
-                div.btn-group(role="group")
-                  button.btn.btn-large.btn-success(name="songs" type="submit", value="save") Save
-                  button.btn.btn-large.btn-danger(name="songs", type="submit", value="delete") Delete
+      if(songs.length>0)
+        div.card-block
+          each song in songs
+            form.form-horizontal(action="/save-songs", method="get")
+              div.form-group.row
+                div.col-xs-12
+                  div.input-group
+                    span.input-group-addon Song
+                    input(type="text", class="form-control", value=song.url, 'aria-describedby'="basic-addon1", name='url',readonly)
+              div.form-group.row
+                div.col-xs-6
+                  div.input-group
+                    span.input-group-addon Song Group
+                    input(type="text", class="form-control", value=song.song_group, 'aria-describedby'="basic-addon1", name='song_group')
+                div.col-xs-6
+                  div.input-group
+                    span.input-group-addon Volume
+                    input(type="text", class="form-control", value=song.volume, 'aria-describedby'="basic-addon1", name='volume')
+              div.form-group.row
+                div.col-xs-12
+                  div.btn-group(role="group")
+                    button.btn.btn-large.btn-success(name="songs" type="submit", value="save") Save
+                    button.btn.btn-large.btn-danger(name="songs", type="submit", value="delete") Delete
 script(type="text/javascript").
   var settings = !{JSON.stringify(settings)}
+  var currentValue=#{currentValue}
+  var currentNumber=#{currentNumber}
 script(src="/js/index.js")
