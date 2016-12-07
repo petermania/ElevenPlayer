@@ -8,7 +8,7 @@ var server = app.listen(8080,function(){
 })
 
 var async = require('async')
-var DMX = require('./modules/dmx/dmx');
+var dmxController = require('./dmxstrip.js')
 var play=require('audio-play')
 var load=require('audio-loader')
 var context=require('audio-context')
@@ -24,11 +24,6 @@ var url = 'mongodb://localhost:27017/ElevenPlayer'
 app.use(busboy())
 app.use(express.static(__dirname + '/public'))
 app.set('view engine', 'pug')
-
-var dmx = new DMX()
-//var universe = dmx.addUniverse('1', 'enttec-usb-dmx-pro', '/dev/cu.usbserial-EN132514') // SCOTTS DMX BOX
-var universe = dmx.addUniverse('1', 'enttec-usb-dmx-pro', '/dev/cu.usbserial-EN199484') // LEIFS DMX BOX
-var on = false
 
 var song
 var songs
@@ -209,6 +204,10 @@ app.get('/save-songs', function(req,res){
 app.get('/recache',function(req,res){
   setupSongs()
   // res.render('index',{settings:obj, songs:songs, currentValue:0,currentNumber:0, title:'ElevenPlayer Calibration'})
+})
+
+app.get('/play-eleven',function(req,res){
+  dmxController.activateEleven()
 })
 
 io.on('connection', function(client) {
