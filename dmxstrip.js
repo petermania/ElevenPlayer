@@ -872,7 +872,8 @@ duration = 520; // ~113 bpm = 530
 //////////////////////////////////////////////////////////////
 module.exports = {
     activateNumber: activateNumber,
-    activateEleven: activateEleven
+    activateEleven: activateEleven,
+    activateNumberTest:activateNumberTest
 }
 
 
