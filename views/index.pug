@@ -125,6 +125,10 @@ div.container
       h3.card-header Song Settings
       if(songs.length>0)
         div.card-block
+          form.form-horizontal(action="/recache", method="get")
+            div.form-group.row
+              div.col-xs-12
+                button.btn.btn-large.btn-success(name="recache" type="submit", value="recache") Recache Songs
           each song in songs
             form.form-horizontal(action="/save-songs", method="get")
               div.form-group.row
