@@ -10,13 +10,20 @@
   },
   "dependencies": {
     "assert": "^1.4.1",
+    "async": "^2.1.4",
+    "audio-loader": "^0.6.0",
+    "audio-play": "^2.1.0",
     "body-parser": "1.15.x",
     "connect-busboy": "0.0.2",
     "dmx": "0.0.4",
     "express": "^3.4.8",
+    "loudness": "^0.2.2",
     "mongodb": "^2.2.12",
     "play-sound": "^1.1.1",
-    "serialport": "^4.0.6"
+    "player": "^0.6.1",
+    "serialport": "^4.0.6",
+    "socket.io": "^1.7.1",
+    "speaker": "^0.3.0"
   },
   "licenses": [
     {
