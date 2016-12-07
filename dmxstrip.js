@@ -716,7 +716,78 @@ function activateNumber(number, callback) {
 }
 
 function activateEleven() {
-    startSparkleBlock();
+    async.series({
+        one: function(callback) {
+            startBlockChase(2);
+            setTimeout(function() {
+                clearInterval(blockChaseInterval)
+                callback(null, 1)
+            }, 10000)
+        },
+        two: function(callback) {
+            startRadiation()
+            //radiation(94, radiationDone());
+            setTimeout(function() {
+                clearInterval(radiationInterval)
+                callback(null, 2)
+            }, 8000)
+        },
+        three: function(callback) {
+            //startRadiation()
+            var blinkInterval = setInterval(function(){
+              onAllColor(Color({r:255,g:255,b:255}))
+              fadeOff(200)
+            },rickBeatTimer)
+            setTimeout(function() {
+                clearInterval(blinkInterval)
+                callback(null, 3)
+            }, 9000)
+        },
+        four: function(callback) {
+            //startRadiation()
+            startRadiation();
+            setTimeout(function() {
+                clearInterval(radiationInterval)
+                callback(null, 4)
+            }, 8000)
+        },
+        five: function(callback) {
+            //startRadiation()
+            startBlockChase(32);
+            setTimeout(function() {
+                clearInterval(blockChaseInterval)
+                callback(null, 5)
+            }, 8000)
+        },
+        six: function(callback) {
+            //startRadiation()
+            startSparkleBlock();
+            setTimeout(function() {
+                clearInterval(sparkleBlockInterval)
+                callback(null, 6)
+            }, 8000)
+        },
+        seven: function(callback) {
+            //startRadiation()
+            console.log("Starting vortex");
+            startVortex();
+            setTimeout(function() {
+                clearInterval(vortexInterval)
+                callback(null, 7)
+            }, 9000)
+        }
+    }, function(err, results) {
+        // results is now equal to: {one: 1, two: 2}
+        var blinkInterval = setInterval(function(){
+          onAllColor(Color({r:255,g:255,b:255}))
+          fadeOff((200/4))
+      },rickBeatTimer/4)
+        setTimeout(function() {
+            clearInterval(blinkInterval)
+            //callback(null, 3)
+            allOff()
+        }, 2000)
+    });
 }
 
 function activateNumberTest(number, callback) {
@@ -759,78 +830,7 @@ duration = 520; // ~113 bpm = 530
 //   clearInterval(blockChaseInterval)
 // },10000)
 //startBlockChase(32);
-async.series({
-    one: function(callback) {
-        startBlockChase(2);
-        setTimeout(function() {
-            clearInterval(blockChaseInterval)
-            callback(null, 1)
-        }, 10000)
-    },
-    two: function(callback) {
-        startRadiation()
-        //radiation(94, radiationDone());
-        setTimeout(function() {
-            clearInterval(radiationInterval)
-            callback(null, 2)
-        }, 8000)
-    },
-    three: function(callback) {
-        //startRadiation()
-        var blinkInterval = setInterval(function(){
-          onAllColor(Color({r:255,g:255,b:255}))
-          fadeOff(200)
-        },rickBeatTimer)
-        setTimeout(function() {
-            clearInterval(blinkInterval)
-            callback(null, 3)
-        }, 9000)
-    },
-    four: function(callback) {
-        //startRadiation()
-        startRadiation();
-        setTimeout(function() {
-            clearInterval(radiationInterval)
-            callback(null, 4)
-        }, 8000)
-    },
-    five: function(callback) {
-        //startRadiation()
-        startBlockChase(32);
-        setTimeout(function() {
-            clearInterval(blockChaseInterval)
-            callback(null, 5)
-        }, 8000)
-    },
-    six: function(callback) {
-        //startRadiation()
-        startSparkleBlock();
-        setTimeout(function() {
-            clearInterval(sparkleBlockInterval)
-            callback(null, 6)
-        }, 8000)
-    },
-    seven: function(callback) {
-        //startRadiation()
-        console.log("Starting vortex");
-        startVortex();
-        setTimeout(function() {
-            clearInterval(vortexInterval)
-            callback(null, 7)
-        }, 9000)
-    }
-}, function(err, results) {
-    // results is now equal to: {one: 1, two: 2}
-    var blinkInterval = setInterval(function(){
-      onAllColor(Color({r:255,g:255,b:255}))
-      fadeOff((200/4))
-  },rickBeatTimer/4)
-    setTimeout(function() {
-        clearInterval(blinkInterval)
-        //callback(null, 3)
-        allOff()
-    }, 2000)
-});
+
 // var iter = 1;
 // var up = 1;
 // setInterval(function() {
