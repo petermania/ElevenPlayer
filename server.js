@@ -26,7 +26,8 @@ app.use(express.static(__dirname + '/public'))
 app.set('view engine', 'pug')
 
 var dmx = new DMX()
-var universe = dmx.addUniverse('1', 'enttec-usb-dmx-pro', '/dev/cu.usbserial-EN132514')
+//var universe = dmx.addUniverse('1', 'enttec-usb-dmx-pro', '/dev/cu.usbserial-EN132514') // SCOTTS DMX BOX
+var universe = dmx.addUniverse('1', 'enttec-usb-dmx-pro', '/dev/cu.usbserial-EN199484') // LEIFS DMX BOX
 var on = false
 
 var song
@@ -181,7 +182,6 @@ app.get('/save-settings',function(req,res){
         assert.equal(null, err)
         console.log("matched: "+r.matchedCount)
         res.redirect('/')
-
     })
   })
 })
