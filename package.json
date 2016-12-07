@@ -17,7 +17,10 @@
     "mongodb": "^2.2.12",
     "play-sound": "^1.1.1",
     "serialport": "^4.0.6",
-    "color": "~1.0.1"
+    "color": "~1.0.1",
+    "merge": "~1.2.0",
+    "randomcolor": "~0.4.4",
+    "async": "~2.1.4"
   },
   "licenses": [
     {
