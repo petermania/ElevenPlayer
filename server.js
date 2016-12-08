@@ -339,7 +339,7 @@ var adjustKnob=function(){
             var direction
             if(currentNumber>obj[i].number) direction=0
             else if(currentNumber<obj[i].number) direction=1
-            changeNumber(col,direction,obj[i].number,function(){
+            changeNumber(col,obj[i].number,function(){
               db.close()
             })
           }
@@ -349,7 +349,7 @@ var adjustKnob=function(){
   })
 }
 
-var changeNumber=function(col,direction,num,callback){
+var changeNumber=function(col,num,callback){
   prevNumber=parseInt(currentNumber)
   currentNumber=parseInt(num)
   col.findOne({'number':num},function(err, cur_song){
