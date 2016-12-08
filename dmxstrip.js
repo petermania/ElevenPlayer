@@ -175,6 +175,11 @@ var setupObj = {
     }]
 }
 
+function resetObj(data){
+  setupObj=data
+  console.log(setupObj)
+}
+
 function done() {
     console.log('DONE')
     duration -= 100;
@@ -876,7 +881,8 @@ duration = 520; // ~113 bpm = 530
 module.exports = {
     activateNumber: activateNumber,
     activateEleven: activateEleven,
-    activateNumberTest:activateNumberTest
+    activateNumberTest:activateNumberTest,
+    resetObj: resetObj
 }
 
 

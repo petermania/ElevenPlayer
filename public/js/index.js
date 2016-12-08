@@ -17,9 +17,14 @@ socket.on('receive_knob',function(data){
 $(document).ready(function(){
   console.log(settings)
   console.log("color: "+settings[0]['activeColor']["red"])
-  $('[name="activeColor"]').css('background-color', "rgb("+settings[0]['activeColor']["red"]+","+settings[0]['activeColor']["green"]+","+settings[0]['activeColor']["blue"]+")")
-  $('[name="standbyColor"]').css('background-color', "rgb("+settings[0]['standbyColor']["red"]+","+settings[0]['standbyColor']["green"]+","+settings[0]['standbyColor']["blue"]+")")
-
+  var red=$('[name="activeRed"]').val()
+  var green=$('[name="activeGreen"]').val()
+  var blue=$('[name="activeBlue"]').val()
+  $('[name="activeColor"]').css('background-color', "rgb("+red+","+green+","+blue+")")
+  red=$('[name="standbyRed"]').val()
+  green=$('[name="standbyGreen"]').val()
+  blue=$('[name="standbyBlue"]').val()
+  $('[name="standbyColor"]').css('background-color', "rgb("+red+","+green+","+blue+")")
   $("#dropdown-response > button").on("click", function(e){
     e.stopPropagation();
     e.preventDefault();
@@ -32,13 +37,19 @@ $(document).ready(function(){
     $('[name="lower_address"]').val(settings[currentNumber-1]["lower_address"])
     $('[name="upper_address"]').val(settings[currentNumber-1]["upper_address"])
     $('[name="activeRed"]').val(settings[currentNumber-1]['activeColor']["red"])
-    $('[name="activegreen"]').val(settings[currentNumber-1]['activeColor']["green"])
-    $('[name="activeblue"]').val(settings[currentNumber-1]['activeColor']["blue"])
+    $('[name="activeGreen"]').val(settings[currentNumber-1]['activeColor']["green"])
+    $('[name="activeBlue"]').val(settings[currentNumber-1]['activeColor']["blue"])
     $('[name="standbyRed"]').val(settings[currentNumber-1]['standbyColor']["red"])
     $('[name="standbyGreen"]').val(settings[currentNumber-1]['standbyColor']["green"])
     $('[name="standbyBlue"]').val(settings[currentNumber-1]['standbyColor']["blue"])
-    $('[name="activeColor"]').css('background-color', "rgb("+settings[0]['activeColor']["red"]+","+settings[0]['activeColor']["green"]+","+settings[0]['activeColor']["blue"]+")")
-    $('[name="standbyColor"]').css('background-color', "rgb("+settings[0]['standbyColor']["red"]+","+settings[0]['standbyColor']["green"]+","+settings[0]['standbyColor']["blue"]+")")
+    var red=$('[name="activeRed"]').val()
+    var green=$('[name="activeGreen"]').val()
+    var blue=$('[name="activeBlue"]').val()
+    $('[name="activeColor"]').css('background-color', "rgb("+red+","+green+","+blue+")")
+    var red=$('[name="standbyRed"]').val()
+    var green=$('[name="standbyGreen"]').val()
+    var blue=$('[name="standbyBlue"]').val()
+    $('[name="standbyColor"]').css('background-color', "rgb("+red+","+green+","+blue+")")
   })
 
   $('.set-lower').on("click",function(e){

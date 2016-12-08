@@ -4,6 +4,10 @@ div.container
     div.card(style={'margin-top':'10px'})
       h3.card-header Knob Settings
       div.card-block
+        form.form-horizontal(action="/play-eleven", method="get")
+          div.form-group.row
+            div.col-xs-4
+              button.btn.btn-large.btn-success(name="play-eleven", type="submit", value="play") Play 11
         div.form-group.row
           div.col-xs-4
             div.btn-group(role="group")
@@ -40,7 +44,6 @@ div.container
                   button.dropdown-item(value="8") 8
                   button.dropdown-item(value="9") 9
                   button.dropdown-item(value="10") 10
-                  button.dropdown-item(value="11") 11
             div.col-xs-9
               div.input-group
                 span.input-group-addon Current Number
@@ -125,6 +128,10 @@ div.container
       h3.card-header Song Settings
       if(songs.length>0)
         div.card-block
+          form.form-horizontal(action="/recache", method="get")
+            div.form-group.row
+              div.col-xs-12
+                button.btn.btn-large.btn-success(name="recache" type="submit", value="recache") Recache Songs
           each song in songs
             form.form-horizontal(action="/save-songs", method="get")
               div.form-group.row
