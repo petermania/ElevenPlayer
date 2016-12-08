@@ -712,7 +712,9 @@ function activateNumber(number, callback) {
             merge(activeObj, setBlock(setupObj.number[i].numValue, Color(setupObj.number[i].standbyColor)))
         } else if (setupObj.number[i].numValue == number) {
             merge(activeObj, setBlock(setupObj.number[i].numValue, Color(setupObj.number[i].activeColor)))
-        } else {
+        }else if (number == 0){
+            merge(activeObj, setBlock(setupObj.number[i].numValue, offColor))
+        }else {
             merge(activeObj, setBlock(setupObj.number[i].numValue, offColor))
         }
     }
@@ -817,6 +819,8 @@ function activateNumberTest(number, callback) {
                 merge(activeObj, setBlock(setupObj.number[i].numValue - maxTest, Color(setupObj.number[i].standbyColor)))
             } else if (setupObj.number[i].numValue == number) {
                 merge(activeObj, setBlock(setupObj.number[i].numValue - maxTest, Color(setupObj.number[i].activeColor)))
+            }else if (number == 0){
+                merge(activeObj, setBlock(setupObj.number[i].numValue, offColor))
             } else {
                 merge(activeObj, setBlock(setupObj.number[i].numValue - maxTest, offColor))
             }
