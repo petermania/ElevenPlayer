@@ -18,6 +18,8 @@ var MongoClient = require('mongodb').MongoClient
 var assert = require('assert')
 var fs = require('fs')
 var loudness = require('loudness');
+var eleven=false
+var elevenURL='rickastley.wav'
 
 var url = 'mongodb://localhost:27017/ElevenPlayer'
 
@@ -79,7 +81,12 @@ var setupSongs=function(){
     pause = {}
     songs_col.find().sort({'song_group':1}).toArray(function(err,obj){
       for(var i=0;i<obj.length;i++){
-        trackObj[i.toString()]=obj[i].url
+        if(obj[i].url==elevenURL){
+          trackObj['eleven']=obj[i].url
+        }
+        else {
+          trackObj[i.toString()]=obj[i].url
+        }
       }
       console.log(trackObj)
       console.log("buffering songs...")
@@ -93,6 +100,7 @@ var setupSongs=function(){
 }
 
 setupSongs()
+
 sendData()
 
 app.get('/',function(req,res){
@@ -233,7 +241,7 @@ app.get('/recache',function(req,res){
 })
 
 app.get('/play-eleven',function(req,res){
-  dmxController.activateEleven()
+  playEleven(function(){})
   res.redirect('/')
 })
 
@@ -295,8 +303,10 @@ var loadSongs = function(db, callback){
 
 var checkTime = function(){
   currentTime = new Date().getTime()
-  if(currentTime-timerCount>knobTimer&&currentValue!=0&&reset==false){
-    resetKnob()
+  if(eleven==false){
+    if(currentTime-timerCount>knobTimer&&currentValue!=0&&reset==false){
+      resetKnob()
+    }
   }
   if(reset==true&&currentValue==0){
     knobZero()
@@ -334,8 +344,8 @@ var adjustKnob=function(){
         prevNumber=parseInt(currentNumber)
         currentNumber=0
         pause[tracks[prevNumber-1].toString()].pause()
-        dmxController.activateNumberTest(0)
-        // dmxController.activateNumber(0)
+        dmxController.activateNumberTest(0,function(){})
+        // dmxController.activateNumber(0,function(){})
       }
       for(var i=0;i<obj.length;i++){
         if(currentValue>=obj[i].lower_value&&currentValue<=obj[i].upper_value){
@@ -364,13 +374,13 @@ var changeNumber=function(col,num,callback){
         }
         pause[tracks[currentNumber-1].toString()]=play(playback[tracks[currentNumber-1].toString()])
     }
-  dmxController.activateNumberTest(currentNumber)
-  // dmxController.activateNumber(currentNumber)
+  dmxController.activateNumberTest(currentNumber,function(){
+
+  })
+  // dmxController.activateNumber(currentNumberfunction(){})
   callback()
   })
 }
-
-
 
 function shuffle(array) {
   var currentIndex = array.length, temporaryValue, randomIndex;
@@ -466,5 +476,18 @@ function songSelection(){
         })
       }
     })
+  })
+}
+
+function playEleven(callback){
+  eleven=true
+  if(prevNumber!=0){
+    pause[tracks[prevNumber-1].toString()].pause()
+  }
+  pause['eleven']=play(playback['eleven'])
+  dmxController.activateEleven(function(){
+    eleven=false
+    pause['eleven'].pause()
+    callback()
   })
 }
