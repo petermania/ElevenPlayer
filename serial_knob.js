@@ -7,7 +7,7 @@ SerialPort.list(function (err, ports) {
     console.log(port.manufacturer);
   });
 });
-var port = new SerialPort('/dev/cu.usbmodem31', {baudRate:115200, autoOpen:false});
+var port = new SerialPort('/dev/cu.usbmodem1411', {baudRate:115200, autoOpen:false});
 function setup(callback){
   port.open(function (err) {
   if (err) {

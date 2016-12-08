@@ -14,6 +14,15 @@ socket.on('receive_knob',function(data){
   $('[name="current_active"]').val(currentNumber)
 })
 
+socket.on('set_serial',function(data){
+  if(data.serial==true){
+    $('[name="toggle_serial"]').removeClass('btn-danger').addClass('btn-success').text("Serial On")
+  }
+  else if (data.serial==false){
+    $('[name="toggle_serial"]').removeClass('btn-success').addClass('btn-danger').text("Serial Off")
+  }
+})
+
 $(document).ready(function(){
   console.log(settings)
   console.log("color: "+settings[0]['activeColor']["red"])
@@ -129,5 +138,11 @@ $(document).ready(function(){
     else if($(this).val()=="down") currentValue--
     $('[name="current_knob"]').val(currentValue)
     socket.emit('send_knob',{currentValue:currentValue})
+  })
+
+  $('[name="toggle_serial"]').on('click',function(){
+    e.stopPropagation()
+    e.preventDefault()
+    socket.emit('toggle_serial')
   })
 })

@@ -2,6 +2,7 @@
 
 var express=require('express')
 var app=express()
+var serialKnob=require('./serial_knob.js')
 
 var server = app.listen(8080,function(){
   console.log("listening on port 8080")
@@ -18,8 +19,7 @@ var MongoClient = require('mongodb').MongoClient
 var assert = require('assert')
 var fs = require('fs')
 var loudness = require('loudness');
-var eleven=false
-var elevenURL='rickastley.wav'
+
 
 var url = 'mongodb://localhost:27017/ElevenPlayer'
 
@@ -41,6 +41,10 @@ var prevNumber=0;
 var reset=false
 var pause ={}
 var tracks = []
+var eleven=false
+var elevenURL='rickastley.wav'
+var dataBuffer = []
+var serial=true
 
 function sendData(){
   MongoClient.connect(url, function(err, db) {
@@ -99,9 +103,15 @@ var setupSongs=function(){
   })
 }
 
+function initSerialKnob(){
+  serialKnob.setup(serialData)
+}
+
 setupSongs()
 
 sendData()
+
+initSerialKnob()
 
 app.get('/',function(req,res){
   MongoClient.connect(url, function(err, db) {
@@ -241,17 +251,24 @@ app.get('/recache',function(req,res){
 })
 
 app.get('/play-eleven',function(req,res){
-  playEleven(function(){})
+  playEleven(function(){
+    console.log("finished playing 11")
+  })
   res.redirect('/')
 })
 
 io.on('connection', function(client) {
     console.log('Client connected...');
+    io.emit('set_serial',{serial:serial})
     client.on('send_knob', function(data) {
       timerCount= new Date().getTime()
       currentValue=data.currentValue
       adjustKnob()
     });
+    client.on('toggle_serial',function(){
+      serial=!serial
+      io.emit('set_serial',{serial:serial})
+    })
 });
 
 var loadSongs = function(db, callback){
@@ -340,14 +357,17 @@ var adjustKnob=function(){
     var col=db.collection('numbers')
     col.find().sort({"lower_value": 1}).toArray(function(err,obj){
       if(currentValue<obj[0].lower_value&&currentNumber!=0){
-        console.log("zero trigger at number: "+currentNumber)
-        prevNumber=parseInt(currentNumber)
-        currentNumber=0
-        pause[tracks[prevNumber-1].toString()].pause()
-        dmxController.activateNumberTest(0,function(){})
-        // dmxController.activateNumber(0,function(){})
+        playZero()
+        db.close()
       }
-      for(var i=0;i<obj.length;i++){
+      else if(currentValue>obj[obj.length-1].upper_value&&currentNumber!=11){
+        playEleven(function(){
+          console.log("finished playing 11")
+        })
+
+      }
+      else{
+        for(var i=0;i<obj.length;i++){
         if(currentValue>=obj[i].lower_value&&currentValue<=obj[i].upper_value){
           if(currentNumber!=obj[i].number){
             changeNumber(col,obj[i].number,function(){
@@ -356,6 +376,7 @@ var adjustKnob=function(){
           }
         }
       }
+    }
     })
   })
 }
@@ -484,10 +505,41 @@ function playEleven(callback){
   if(prevNumber!=0){
     pause[tracks[prevNumber-1].toString()].pause()
   }
+  currentNumber=11
   pause['eleven']=play(playback['eleven'])
   dmxController.activateEleven(function(){
     eleven=false
     pause['eleven'].pause()
     callback()
   })
+}
+
+function serialData(data){
+  if(serial==true){
+    if(data!=currentValue){
+      // console.log(data)
+      timerCount= new Date().getTime()
+      if(Math.abs(dataBuffer[0]-data)<40&&Math.abs(dataBuffer[1]-data)<40&&Math.abs(dataBuffer[2]-data)<40){
+        console.log("data:"+data)
+        currentValue=data
+        adjustKnob()
+      }
+      else{
+        console.log("garbage")
+      }
+      dataBuffer[2]=dataBuffer[1]
+      dataBuffer[1]=dataBuffer[0]
+      dataBuffer[0]=data
+    }
+  }
+}
+
+function playZero(){
+  console.log("zero trigger at number: "+currentNumber)
+  prevNumber=parseInt(currentNumber)
+  currentNumber=0
+  pause[tracks[prevNumber-1].toString()].pause()
+  io.emit('receive_knob',{currentValue:currentValue,currentNumber:currentNumber})
+  dmxController.activateNumberTest(0,function(){})
+  // dmxController.activateNumber(0,function(){})
 }
