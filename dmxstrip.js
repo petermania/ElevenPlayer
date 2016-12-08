@@ -707,7 +707,10 @@ function activateNumber(number, callback) {
             merge(activeObj, setBlock(setupObj.number[i].numValue, Color(setupObj.number[i].standbyColor)))
         } else if (setupObj.number[i].numValue == number) {
             merge(activeObj, setBlock(setupObj.number[i].numValue, Color(setupObj.number[i].activeColor)))
-        } else {
+        }else if (number == 0){
+            merge(activeObj, setBlock(setupObj.number[i].numValue, offColor))
+        }
+        else {
             merge(activeObj, setBlock(setupObj.number[i].numValue, offColor))
         }
     }
