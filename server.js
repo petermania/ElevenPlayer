@@ -241,8 +241,6 @@ io.on('connection', function(client) {
     console.log('Client connected...');
     client.on('send_knob', function(data) {
       timerCount= new Date().getTime()
-      // console.log("knob updated from client")
-      // console.log(data)
       currentValue=data.currentValue
       adjustKnob()
     });
@@ -329,16 +327,19 @@ var knobZero=function(){
 var adjustKnob=function(){
   MongoClient.connect(url, function(err, db) {
     assert.equal(null, err)
-    // console.log("Connected successfully to db server to check values")
     var col=db.collection('numbers')
     col.find().sort({"lower_value": 1}).toArray(function(err,obj){
+      if(currentValue<obj[0].lower_value&&currentNumber!=0){
+        console.log("zero trigger at number: "+currentNumber)
+        prevNumber=parseInt(currentNumber)
+        currentNumber=0
+        pause[tracks[prevNumber-1].toString()].pause()
+        dmxController.activateNumberTest(0)
+        // dmxController.activateNumber(0)
+      }
       for(var i=0;i<obj.length;i++){
-        // console.log(obj[i])
         if(currentValue>=obj[i].lower_value&&currentValue<=obj[i].upper_value){
           if(currentNumber!=obj[i].number){
-            var direction
-            if(currentNumber>obj[i].number) direction=0
-            else if(currentNumber<obj[i].number) direction=1
             changeNumber(col,obj[i].number,function(){
               db.close()
             })
@@ -364,6 +365,7 @@ var changeNumber=function(col,num,callback){
         pause[tracks[currentNumber-1].toString()]=play(playback[tracks[currentNumber-1].toString()])
     }
   dmxController.activateNumberTest(currentNumber)
+  // dmxController.activateNumber(currentNumber)
   callback()
   })
 }
