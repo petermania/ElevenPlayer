@@ -718,11 +718,12 @@ function activateNumber(number, callback) {
             merge(activeObj, setBlock(setupObj.number[i].numValue, offColor))
         }
     }
-    console.log(activeObj);
+    //console.log(activeObj);
     universe.update(activeObj);
+    callback(null,number)
 }
 
-function activateEleven() {
+function activateEleven(callback) {
     async.series({
         one: function(callback) {
             startBlockChase(2);
@@ -793,6 +794,7 @@ function activateEleven() {
             clearInterval(blinkInterval)
             //callback(null, 3)
             allOff()
+            callback(null,"done")
         }, 2000)
     });
 }
@@ -826,8 +828,9 @@ function activateNumberTest(number, callback) {
             }
         }
     }
-    console.log(activeObj);
+    //console.log(activeObj);
     universe.update(activeObj);
+    callback(null,number)
 }
 //////////////////////////////////////////////////////////////
 allOff()
