@@ -40,6 +40,31 @@ var reset=false
 var pause ={}
 var tracks = []
 
+function sendData(){
+  MongoClient.connect(url, function(err, db) {
+    assert.equal(null, err)
+    console.log("Connected successfully to db server to save settings")
+    var col=db.collection('numbers')
+    col.find().sort({'number':1}).toArray(function(err,obj){
+      var data={"number":[]}
+      for (var i=0;i<obj.length;i++){
+        data.number[i]={}
+        data.number[i].activeColor={}
+        data.number[i].standbyColor={}
+        data.number[i].numValue=obj[i].number
+        data.number[i].startPixel=obj[i].lower_address
+        data.number[i].stopPixel=obj[i].upper_address
+        data.number[i].activeColor.r=obj[i].activeColor.red
+        data.number[i].activeColor.g=obj[i].activeColor.green
+        data.number[i].activeColor.b=obj[i].activeColor.blue
+        data.number[i].standbyColor.r=obj[i].standbyColor.red
+        data.number[i].standbyColor.g=obj[i].standbyColor.green
+        data.number[i].standbyColor.b=obj[i].standbyColor.blue
+      }
+      dmxController.resetObj(data)
+    })
+  })
+}
 
 var setupSongs=function(){
   MongoClient.connect(url, function(err, db) {
@@ -60,7 +85,7 @@ var setupSongs=function(){
       console.log("buffering songs...")
       load(trackObj,{from:songpath}).then(function(audio){
         playback=audio
-        console.log(playback)
+        console.log("successfully buffered "+playback.length+" songs")
         songSelection()
       })
     })
@@ -68,6 +93,7 @@ var setupSongs=function(){
 }
 
 setupSongs()
+sendData()
 
 app.get('/',function(req,res){
   MongoClient.connect(url, function(err, db) {
@@ -112,7 +138,6 @@ app.get('/',function(req,res){
         "db items found"
         loadSongs(db, function(){
           db.close()
-          console.log(obj)
           res.render('index',{settings:obj, songs:songs, currentValue:0,currentNumber:0, title:'ElevenPlayer Calibration'})
         })
       }
@@ -176,6 +201,7 @@ app.get('/save-settings',function(req,res){
       function(err, r) {
         assert.equal(null, err)
         console.log("matched: "+r.matchedCount)
+        sendData()
         res.redirect('/')
     })
   })
@@ -203,11 +229,12 @@ app.get('/save-songs', function(req,res){
 
 app.get('/recache',function(req,res){
   setupSongs()
-  // res.render('index',{settings:obj, songs:songs, currentValue:0,currentNumber:0, title:'ElevenPlayer Calibration'})
+  res.redirect('/')
 })
 
 app.get('/play-eleven',function(req,res){
   dmxController.activateEleven()
+  res.redirect('/')
 })
 
 io.on('connection', function(client) {
@@ -335,10 +362,13 @@ var changeNumber=function(col,direction,num,callback){
           pause[tracks[prevNumber-1].toString()].pause()
         }
         pause[tracks[currentNumber-1].toString()]=play(playback[tracks[currentNumber-1].toString()])
-        callback()
     }
+  dmxController.activateNumberTest(currentNumber)
+  callback()
   })
 }
+
+
 
 function shuffle(array) {
   var currentIndex = array.length, temporaryValue, randomIndex;
