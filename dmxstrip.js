@@ -180,6 +180,14 @@ function resetObj(data){
   console.log(setupObj)
 }
 
+function motorOn(){
+
+}
+
+function motorOff(){
+
+}
+
 function done() {
     console.log('DONE')
     duration -= 100;
@@ -401,7 +409,7 @@ function chase() {
                 break;
             case 4:
                 currentColor = Color({
-                    r: 255,
+                    r: 245,
                     g: 255,
                     b: 255
                 });
@@ -787,7 +795,7 @@ function activateEleven(callback) {
     }, function(err, results) {
         // results is now equal to: {one: 1, two: 2}
         var blinkInterval = setInterval(function(){
-          onAllColor(Color({r:255,g:255,b:255}))
+          onAllColor(Color({r:245,g:255,b:255}))
           fadeOff((200/4))
       },rickBeatTimer/4)
         setTimeout(function() {
@@ -886,7 +894,9 @@ module.exports = {
     activateNumber: activateNumber,
     activateEleven: activateEleven,
     activateNumberTest:activateNumberTest,
-    resetObj: resetObj
+    resetObj: resetObj,
+    motorOn: motorOn,
+    motorOff:motorOff
 }
 
 
