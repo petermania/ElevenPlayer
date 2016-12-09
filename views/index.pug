@@ -10,6 +10,8 @@ div.container
                 button.btn.btn-large.btn-success(name="play-eleven", type="submit", value="play") Play 11
           div.col-xs-4
             button.btn.btn-large.btn-success(name="toggle_serial", type="submit", value="serial on") Serial On
+          div.col-xs-4
+            button.btn.btn-large.btn-success(name="toggle_motor", type="submit", value="motor on") Motor On
         div.form-group.row
           div.col-xs-4
             div.btn-group(role="group")
@@ -25,11 +27,16 @@ div.container
               span.input-group-addon Current Number
               input(type="text", class="form-control", value=currentNumber, name="current_active" 'aria-describedby'="basic-addon1", readonly)
         form.form-horizontal(action="/save-settings", method="get")
-          div.form-group.row(style={"border-bottom":"solid 1px rgb(220,220,220)","padding-bottom":'20px'})
+          div.form-group.row
             div.col-xs-12
               div.input-group
                 span.input-group-addon Timer
                 input(type="text", class="form-control", value=timer, 'aria-describedby'="basic-addon1", name="timer")
+          div.form-group.row(style={"border-bottom":"solid 1px rgb(220,220,220)","padding-bottom":'20px'})
+            div.col-xs-12
+              div.input-group
+                span.input-group-addon Zero Value
+                input(type="text", class="form-control", value=zero, 'aria-describedby'="basic-addon1", name="zero")
           div.form-group.row
             div.col-xs-3
               div.dropdown
