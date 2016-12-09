@@ -348,11 +348,15 @@ var checkTime = function(){
     adjustKnob()
     io.emit('receive_knob',{currentValue:currentValue,currentNumber:currentNumber})
   }
+  if(currentValue==0){
+    dmxController.motorOff()
+  }
 }
 
 var resetKnob=function(){
     reset=true
     playable=false
+    dmxController.motorOn()
     if(currentNumber!=0&&eleven==false) {
       console.log("closing track "+prevNumber)
       pause[tracks[currentNumber-1].toString()].pause()
@@ -549,6 +553,7 @@ function serialData(data){
         if(reset&&Math.abs((dataBuffer[0]+dataBuffer[1]+dataBuffer[2])/3-dataBuffer[0]<5)){
           reset=false
           "reset interrupt"
+          dmxController.motorOff()
         }
         adjustKnob()
       }

@@ -180,6 +180,14 @@ function resetObj(data){
   console.log(setupObj)
 }
 
+function motorOn(){
+
+}
+
+function motorOff(){
+
+}
+
 function done() {
     console.log('DONE')
     duration -= 100;
@@ -886,7 +894,9 @@ module.exports = {
     activateNumber: activateNumber,
     activateEleven: activateEleven,
     activateNumberTest:activateNumberTest,
-    resetObj: resetObj
+    resetObj: resetObj,
+    motorOn: motorOn,
+    motorOff:motorOff
 }
 
 
