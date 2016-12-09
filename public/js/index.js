@@ -133,14 +133,14 @@ $(document).ready(function(){
     $('[name="standbyColor"]').css('background-color', "rgb("+red+","+green+","+blue+")")
   })
 
-  $('[name="knob"]').on('click',function(){
-    if($(this).val()=="up") currentValue++
-    else if($(this).val()=="down") currentValue--
+  $('[name="knob"]').on('click',function(e){
+    if($(this).val()=="up") currentValue+=10
+    else if($(this).val()=="down") currentValue-=10
     $('[name="current_knob"]').val(currentValue)
     socket.emit('send_knob',{currentValue:currentValue})
   })
 
-  $('[name="toggle_serial"]').on('click',function(){
+  $('[name="toggle_serial"]').on('click',function(e){
     e.stopPropagation()
     e.preventDefault()
     socket.emit('toggle_serial')

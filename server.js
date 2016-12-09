@@ -118,6 +118,7 @@ app.get('/',function(req,res){
     assert.equal(null, err)
     console.log("Connected successfully to db server to load page")
     var col=db.collection('numbers')
+    var globals=db.collection('globals')
     col.find().sort({"number": 1}).toArray(function(err,obj){
       if(obj.length==0)
       {
@@ -146,7 +147,7 @@ app.get('/',function(req,res){
               "db items created"
               loadSongs(db, function(){
                 db.close()
-                res.render('index',{settings:obj, currentValue:0, currentNumber:0, title:'ElevenPlayer Calibration'})
+                res.render('index',{settings:obj, timer:15000, currentValue:0, currentNumber:0, title:'ElevenPlayer Calibration'})
               })
             }
           })
@@ -154,9 +155,12 @@ app.get('/',function(req,res){
       }
       else{
         "db items found"
-        loadSongs(db, function(){
-          db.close()
-          res.render('index',{settings:obj, songs:songs, currentValue:0,currentNumber:0, title:'ElevenPlayer Calibration'})
+        globals.find({}).toArray(function(err2, obj2){
+          loadSongs(db, function(){
+            db.close()
+            console.log("timer:"+obj2[0].timer)
+            res.render('index',{settings:obj, timer:obj2[0].timer, songs:songs, currentValue:0,currentNumber:0, title:'ElevenPlayer Calibration'})
+          })
         })
       }
     })//find all numbers
@@ -196,6 +200,7 @@ app.get('/save-settings',function(req,res){
     assert.equal(null, err)
     console.log("Connected successfully to db server to save settings")
     var col=db.collection('numbers')
+    var globals=db.collection('globals')
     col.updateOne({number:parseInt(req.query.current_number)},
       {$set: {
         song_group:parseInt(req.query.song_group),
@@ -218,9 +223,17 @@ app.get('/save-settings',function(req,res){
       {upsert:false},
       function(err, r) {
         assert.equal(null, err)
-        console.log("matched: "+r.matchedCount)
-        sendData()
-        res.redirect('/')
+        console.log("numbers matched: "+r.matchedCount)
+        globals.updateOne({},{$set:
+            {timer:req.query.timer}
+          },
+          {upsert:false},
+          function(err2,r2){
+            assert.equal(null, err2)
+            console.log("settings matched: "+r.matchedCount)
+            sendData()
+            res.redirect('/')
+        })
     })
   })
 })
@@ -267,6 +280,7 @@ io.on('connection', function(client) {
     });
     client.on('toggle_serial',function(){
       serial=!serial
+      console.log('serial set to: '+serial)
       io.emit('set_serial',{serial:serial})
     })
 });
