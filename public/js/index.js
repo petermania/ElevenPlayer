@@ -61,11 +61,15 @@ $(document).ready(function(){
     $('[name="standbyColor"]').css('background-color', "rgb("+red+","+green+","+blue+")")
   })
 
-  $('.set-lower').on("click",function(e){
+  $('[name="set-lower"]').on("click",function(e){
+    e.stopPropagation();
+    e.preventDefault();
     $('[name="lower_value"]').val(currentValue)
   })
 
-  $('.set-upper').on("click",function(e){
+  $('[name="set-upper"]').on("click",function(e){
+    e.stopPropagation();
+    e.preventDefault();
     $('[name="upper_value"]').val(currentValue)
   })
 

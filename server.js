@@ -96,6 +96,12 @@ var setupSongs=function(){
       console.log("buffering songs...")
       load(trackObj,{from:songpath}).then(function(audio){
         playback=audio
+        for(var i=0;i<10;i++){
+          pause[i.toString()]=play(playback[i.toString()])
+          pause[i.toString()].pause()
+        }
+        pause['eleven']=play(playback['eleven'])
+        pause['eleven'].pause()
         console.log("successfully buffered "+playback.length+" songs")
         songSelection()
       })
