@@ -30,7 +30,6 @@ app.set('view engine', 'pug')
 var song
 var songs
 var playback
-var pause
 var currentValue=0
 var currentNumber=0
 var songpath=__dirname+'/public/music/'
@@ -39,12 +38,13 @@ var timerCount=new Date().getTime()
 var currentTime=new Date().getTime()
 var prevNumber=0;
 var reset=false
+var playable=true
 var pause ={}
 var tracks = []
 var eleven=false
 var elevenURL='rickastley.wav'
 var dataBuffer = []
-var serial=true
+var serial=false
 
 function sendData(){
   MongoClient.connect(url, function(err, db) {
@@ -275,6 +275,7 @@ io.on('connection', function(client) {
     io.emit('set_serial',{serial:serial})
     client.on('send_knob', function(data) {
       timerCount= new Date().getTime()
+      reset=false
       currentValue=data.currentValue
       adjustKnob()
     });
@@ -351,7 +352,8 @@ var checkTime = function(){
 
 var resetKnob=function(){
     reset=true
-    if(currentNumber!=0) {
+    playable=false
+    if(currentNumber!=0&&eleven==false) {
       console.log("closing track "+prevNumber)
       pause[tracks[currentNumber-1].toString()].pause()
     }
@@ -359,6 +361,8 @@ var resetKnob=function(){
 
 var knobZero=function(){
   reset=false
+  playable=true
+  eleven=false
   currentNumber=0
   console.log("knob has reached 0 Position")
   songSelection()
@@ -374,7 +378,11 @@ var adjustKnob=function(){
         playZero()
         db.close()
       }
-      else if(currentValue>obj[obj.length-1].upper_value&&currentNumber!=11){
+      else if(currentValue>obj[obj.length-1].upper_value&&currentNumber!=11&&playable){
+        if(currentNumber!=0) {
+          console.log("closing track "+currentNumber)
+          pause[tracks[currentNumber-1].toString()].pause()
+        }
         playEleven(function(){
           console.log("finished playing 11")
         })
@@ -402,7 +410,9 @@ var changeNumber=function(col,num,callback){
     console.log(cur_song)
     console.log("number updated to: "+currentNumber)
     io.emit('receive_knob',{currentValue:currentValue,currentNumber:currentNumber})
-    if(reset==false){
+    console.log("reset:" +reset)
+    console.log("playable: "+playable)
+    if(!reset&&playable&&eleven==false){
         if(prevNumber!=0) {
           console.log("closing track "+prevNumber)
           pause[tracks[prevNumber-1].toString()].pause()
@@ -410,7 +420,6 @@ var changeNumber=function(col,num,callback){
         pause[tracks[currentNumber-1].toString()]=play(playback[tracks[currentNumber-1].toString()])
     }
   dmxController.activateNumberTest(currentNumber,function(){
-
   })
   // dmxController.activateNumber(currentNumberfunction(){})
   callback()
@@ -522,8 +531,9 @@ function playEleven(callback){
   currentNumber=11
   pause['eleven']=play(playback['eleven'])
   dmxController.activateEleven(function(){
-    eleven=false
     pause['eleven'].pause()
+    reset=true
+    playable=false
     callback()
   })
 }
@@ -536,6 +546,10 @@ function serialData(data){
       if(Math.abs(dataBuffer[0]-data)<40&&Math.abs(dataBuffer[1]-data)<40&&Math.abs(dataBuffer[2]-data)<40){
         console.log("data:"+data)
         currentValue=data
+        if(reset&&Math.abs((dataBuffer[0]+dataBuffer[1]+dataBuffer[2])/3-dataBuffer[0]<5)){
+          reset=false
+          "reset interrupt"
+        }
         adjustKnob()
       }
       else{
