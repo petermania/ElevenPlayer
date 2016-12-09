@@ -28,7 +28,7 @@ app.use(express.static(__dirname + '/public'))
 app.set('view engine', 'pug')
 
 //USER VARS
-var ledTest=false
+var ledTest = false
 var zero=0
 var knobTimer = 10000
 var motor = true
