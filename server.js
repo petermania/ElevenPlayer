@@ -27,24 +27,29 @@ app.use(busboy())
 app.use(express.static(__dirname + '/public'))
 app.set('view engine', 'pug')
 
+//USER VARS
+var ledTest=false
+var zero=0
+var knobTimer = 10000
+
 var song
 var songs
 var playback
 var currentValue=0
 var currentNumber=0
+var prevNumber=0;
 var songpath=__dirname+'/public/music/'
-var knobTimer = 10000
 var timerCount=new Date().getTime()
 var currentTime=new Date().getTime()
-var prevNumber=0;
 var reset=false
-var playable=true
+var playable=false
 var pause ={}
+var settings=[]
 var tracks = []
 var eleven=false
 var elevenURL='rickastley.wav'
 var dataBuffer = []
-var serial=false
+var serial=true
 
 function sendData(){
   MongoClient.connect(url, function(err, db) {
@@ -68,19 +73,18 @@ function sendData(){
         data.number[i].standbyColor.b=obj[i].standbyColor.blue
       }
       dmxController.resetObj(data)
+      db.close()
     })
   })
 }
 
 var setupSongs=function(){
   MongoClient.connect(url, function(err, db) {
-    var count=0
     assert.equal(null, err)
     console.log("Connected successfully to db server to load songs")
     var col=db.collection('numbers')
     var songs_col=db.collection('songs')
     var trackObj = {}
-    var count=1
     playback = {}
     pause = {}
     songs_col.find().sort({'song_group':1}).toArray(function(err,obj){
@@ -92,17 +96,19 @@ var setupSongs=function(){
           trackObj[i.toString()]=obj[i].url
         }
       }
-      console.log(trackObj)
       console.log("buffering songs...")
+      console.log(trackObj)
+      db.close()
       load(trackObj,{from:songpath}).then(function(audio){
         playback=audio
-        for(var i=0;i<10;i++){
-          pause[i.toString()]=play(playback[i.toString()])
-          pause[i.toString()].pause()
+        var total=parseInt(Object.keys(playback).length)
+        console.log("total keys in playback: "+Object.keys(playback).length)
+        playable=true
+        for(var i=0;i<total;i++) {
+          pause[Object.keys(playback)[i]]=play(playback[Object.keys(playback)[i]])
+          pause[Object.keys(playback)[i]].pause()
         }
-        pause['eleven']=play(playback['eleven'])
-        pause['eleven'].pause()
-        console.log("successfully buffered "+playback.length+" songs")
+        console.log("total keys in pause: "+Object.keys(pause).length)
         songSelection()
       })
     })
@@ -126,49 +132,14 @@ app.get('/',function(req,res){
     var col=db.collection('numbers')
     var globals=db.collection('globals')
     col.find().sort({"number": 1}).toArray(function(err,obj){
-      if(obj.length==0)
-      {
-        var count=0
-        for(var i=1;i<12;i++){
-          col.insertOne({
-            'number':i,
-            'song_group':0,
-            'lower_address':0,
-            'upper_address':0,
-            'lower_value':0,
-            'upper_value':0,
-            'activeColor':{
-              'red':255,
-              'green':255,
-              'blue':255
-            },
-            'standbyColor':{
-              'red':255,
-              'green':255,
-              'blue':255
-            }
-          },function(){
-            count++
-            if(count==11){
-              "db items created"
-              loadSongs(db, function(){
-                db.close()
-                res.render('index',{settings:obj, timer:15000, currentValue:0, currentNumber:0, title:'ElevenPlayer Calibration'})
-              })
-            }
-          })
-        }
-      }
-      else{
         "db items found"
+        settings=obj
         globals.find({}).toArray(function(err2, obj2){
           loadSongs(db, function(){
             db.close()
-            console.log("timer:"+obj2[0].timer)
-            res.render('index',{settings:obj, timer:obj2[0].timer, songs:songs, currentValue:0,currentNumber:0, title:'ElevenPlayer Calibration'})
+            res.render('index',{settings:settings, timer:obj2[0].timer, songs:songs, currentValue:0,currentNumber:0, title:'ElevenPlayer Calibration'})
           })
         })
-      }
     })//find all numbers
   })
 })
@@ -191,6 +162,7 @@ app.post('/upload',function(req,res){
             'song_group':1,
             'volume':1
           },function(){
+            db.close()
             res.redirect('back');
           })
         })
@@ -200,8 +172,6 @@ app.post('/upload',function(req,res){
 })
 
 app.get('/save-settings',function(req,res){
-  // console.log("***GET QUERY***")
-  // console.dir(req.query)
   MongoClient.connect(url, function(err, db) {
     assert.equal(null, err)
     console.log("Connected successfully to db server to save settings")
@@ -238,6 +208,7 @@ app.get('/save-settings',function(req,res){
             assert.equal(null, err2)
             console.log("settings matched: "+r.matchedCount)
             sendData()
+            db.close()
             res.redirect('/')
         })
     })
@@ -246,6 +217,7 @@ app.get('/save-settings',function(req,res){
 
 app.get('/save-songs', function(req,res){
   MongoClient.connect(url, function(err, db) {
+    console.log(req.body.songs)
     assert.equal(null, err)
     console.log("Connected successfully to db server to save songs")
     var col=db.collection('songs')
@@ -259,6 +231,7 @@ app.get('/save-songs', function(req,res){
       function(err, r) {
         assert.equal(null, err)
         console.log("matched: "+r.matchedCount)
+        db.close()
         res.redirect('/')
     })
   })
@@ -295,47 +268,44 @@ io.on('connection', function(client) {
 var loadSongs = function(db, callback){
   var col_songs=db.collection('songs')
   col_songs.find().sort({"song_group": 1}).toArray(function(err_songs,obj_songs){
-    if(obj_songs.length==0){
-      fs.readdir(songpath, (err, files) => {
-        console.log(files.length)
-        if(files.length>0){
-          var count=0
-          console.log(songpath)
-          console.log("generating song db")
-          files.forEach(file => {
-            if(! /^\..*/.test(file)) {
-              // console.log(file)
-              col_songs.insertOne({
-                'url':file,
-                'song_group':1,
-                'volume':1
-              },function(){
-                count++
-                if(count==files.length){
-                  "retrying with generated list"
-                  callback()
-                }
-              })
-          }//test for hidden file
-          else{
-            count++
-            if(count==files.length){
-              "retrying with generated list"
-              callback()
-            }
-          }
-        })
-      }
-      else{
-        songs=[]
-        callback()
-      }
-      })
-    }
-    else{
+    // if(obj_songs.length==0){
+    //   fs.readdir(songpath, (err, files) => {
+    //     if(files.length>0){
+    //       var count=0
+    //       console.log(songpath)
+    //       console.log("generating song db")
+    //       files.forEach(file => {
+    //         if(! /^\..*/.test(file)) {
+    //           // console.log(file)
+    //           col_songs.insertOne({
+    //             'url':file,
+    //             'song_group':1,
+    //             'volume':1
+    //           },function(){
+    //             count++
+    //             if(count==files.length){
+    //               "retrying with generated list"
+    //               callback()
+    //             }
+    //           })
+    //       }//test for hidden file
+    //       else{
+    //         count++
+    //         if(count==files.length){
+    //           "retrying with generated list"
+    //           callback()
+    //         }
+    //       }
+    //     })
+    //   }
+    //   else{
+    //     songs=[]
+    //     callback()
+    //   }
+    //   })
+    // }
       songs=obj_songs
       callback()
-    }
   })
 }
 
@@ -347,7 +317,7 @@ var checkTime = function(){
     }
   }
   if(reset==true&&currentValue==0){
-    knobZero()
+    playZero()
   }
   else if(reset==true){
     currentValue--
@@ -360,23 +330,15 @@ var checkTime = function(){
 }
 
 var resetKnob=function(){
+    console.log("reset knob triggered")
     reset=true
     playable=false
     dmxController.motorOn()
     if(currentNumber!=0&&eleven==false) {
-      console.log("closing track "+prevNumber)
-      pause[tracks[currentNumber-1].toString()].pause()
+      for(var i=0;i<Object.keys(pause).length;i++){
+        pause[Object.keys(pause)[i]].pause()
+      }
     }
-}
-
-var knobZero=function(){
-  reset=false
-  playable=true
-  eleven=false
-  currentNumber=0
-  console.log("knob has reached 0 Position")
-  songSelection()
-  io.emit('receive_knob',{currentValue:currentValue,currentNumber:currentNumber})
 }
 
 var adjustKnob=function(){
@@ -389,25 +351,25 @@ var adjustKnob=function(){
         db.close()
       }
       else if(currentValue>obj[obj.length-1].upper_value&&currentNumber!=11&&playable){
-        if(currentNumber!=0) {
-          console.log("closing track "+currentNumber)
-          pause[tracks[currentNumber-1].toString()].pause()
+
+        for(var i=0;i<Object.keys(pause).length;i++){
+          pause[Object.keys(pause)[i]].pause()
         }
         playEleven(function(){
           console.log("finished playing 11")
         })
+        db.close()
 
       }
       else{
         for(var i=0;i<obj.length;i++){
         if(currentValue>=obj[i].lower_value&&currentValue<=obj[i].upper_value){
           if(currentNumber!=obj[i].number){
-            changeNumber(col,obj[i].number,function(){
-              db.close()
-            })
+            changeNumber(col,obj[i].number,function(){})
           }
         }
       }
+      db.close()
     }
     })
   })
@@ -423,16 +385,15 @@ var changeNumber=function(col,num,callback){
     console.log("reset:" +reset)
     console.log("playable: "+playable)
     if(!reset&&playable&&eleven==false){
-        if(prevNumber!=0) {
-          console.log("closing track "+prevNumber)
-          pause[tracks[prevNumber-1].toString()].pause()
+        for(var i=0;i<Object.keys(pause).length;i++){
+          pause[Object.keys(pause)[i]].pause()
         }
-        pause[tracks[currentNumber-1].toString()]=play(playback[tracks[currentNumber-1].toString()])
+        pause[tracks[currentNumber-1].toString()].play()
+        // pause[tracks[currentNumber-1].toString()]=play(playback[tracks[currentNumber-1].toString()])
     }
-  dmxController.activateNumberTest(currentNumber,function(){
-  })
-  // dmxController.activateNumber(currentNumberfunction(){})
-  callback()
+    if(ledTest) dmxController.activateNumberTest(currentNumber,function(){})
+    else dmxController.activateNumber(currentNumber,function(){})
+    callback()
   })
 }
 
@@ -513,7 +474,6 @@ function songSelection(){
           var count=0
           tracks=[]
           for(var i=0;i<results.one.length;i++){
-            console.log(oneGroup[i])
             tracks.push(oneGroup[i])
           }
           for(var i=0;i<results.two.length;i++){
@@ -525,8 +485,9 @@ function songSelection(){
           for(var i=0;i<results.four.length;i++){
             tracks.push(fourGroup[i])
           }
-          console.log('new tracks selected')
+          console.log('new tracks selected:')
           console.log(tracks)
+          db.close()
         })
       }
     })
@@ -535,8 +496,9 @@ function songSelection(){
 
 function playEleven(callback){
   eleven=true
-  if(prevNumber!=0){
-    pause[tracks[prevNumber-1].toString()].pause()
+
+  for(var i=0;i<Object.keys(pause).length;i++){
+    pause[Object.keys(pause)[i]].pause()
   }
   currentNumber=11
   pause['eleven']=play(playback['eleven'])
@@ -574,11 +536,19 @@ function serialData(data){
 }
 
 function playZero(){
-  console.log("zero trigger at number: "+currentNumber)
-  prevNumber=parseInt(currentNumber)
+  console.log("knob has reached 0 Position")
+  reset=false
+  playable=true
+  eleven=false
   currentNumber=0
-  pause[tracks[prevNumber-1].toString()].pause()
+
+  prevNumber=parseInt(currentNumber)
+  for(var i=0;i<Object.keys(pause).length;i++){
+    pause[Object.keys(pause)[i]].pause()
+  }
   io.emit('receive_knob',{currentValue:currentValue,currentNumber:currentNumber})
-  dmxController.activateNumberTest(0,function(){})
-  // dmxController.activateNumber(0,function(){})
+  if(ledTest) dmxController.activateNumberTest(0,function(){})
+  else dmxController.activateNumber(0,function(){})
+  songSelection()
+
 }

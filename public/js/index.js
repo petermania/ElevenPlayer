@@ -7,7 +7,7 @@ socket.on('connect', function(data) {
 })
 
 socket.on('receive_knob',function(data){
-  console.log("updating: "+data.currentNumber)
+  // console.log("updating: "+data.currentNumber)
   currentValue=data.currentValue
   currentNumber=data.currentNumber
   $('[name="current_knob"]').val(currentValue)

@@ -34,7 +34,9 @@ var offColor = Color({
     })
     // var universe = dmx.addUniverse('demo', 'enttec-usb-dmx-pro', '/dev/cu.usbserial-6AVNHXS8')
     // var universe = dmx.addUniverse('demo', 'enttec-open-usb-dmx', '/dev/cu.usbserial-6AVNHXS8')
-var universe = dmx.addUniverse('1', 'enttec-usb-dmx-pro', '/dev/cu.usbserial-EN199484') // LEIFS DMX BOX
+    var universe = dmx.addUniverse('1', 'enttec-usb-dmx-pro', '/dev/cu.usbserial-EN132514') // SHOW DMX BOX
+
+// var universe = dmx.addUniverse('1', 'enttec-usb-dmx-pro', '/dev/cu.usbserial-EN199484') // LEIFS DMX BOX
 var setupObj = {
     "number": [{
         "numValue": 1,
@@ -181,7 +183,7 @@ var setupObj = {
 
 function resetObj(data) {
     setupObj = data
-    console.log(setupObj)
+    // console.log(setupObj)
 }
 
 function motorOn(){
@@ -1071,7 +1073,7 @@ module.exports = {
 
 function exitHandler(options, err) {
     if (options.cleanup) allOff();
-    console.log('clean');
+    console.log('clean exit');
     if (err) console.log(err.stack);
     if (options.exit) process.exit();
 }
