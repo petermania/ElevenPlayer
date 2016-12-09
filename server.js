@@ -44,7 +44,7 @@ var tracks = []
 var eleven=false
 var elevenURL='rickastley.wav'
 var dataBuffer = []
-var serial=false
+var serial=true
 
 function sendData(){
   MongoClient.connect(url, function(err, db) {
@@ -536,7 +536,7 @@ function songSelection(){
 function playEleven(callback){
   eleven=true
   if(prevNumber!=0){
-    pause[tracks[prevNumber-1].toString()].pause()
+    pause[tracks[(prevNumber-1).toString()]].pause()
   }
   currentNumber=11
   pause['eleven']=play(playback['eleven'])
