@@ -3,9 +3,9 @@ var dataCallback;
 var dataBuf = "";
 SerialPort.list(function (err, ports) {
   ports.forEach(function(port) {
-    console.log(port.comName);
-    console.log(port.pnpId);
-    console.log(port.manufacturer);
+    console.log("comName: "+port.comName);
+    console.log("pnpId: "+port.pnpId);
+    console.log("manufacturer: "+port.manufacturer);
   });
 });
 var port = new SerialPort('/dev/cu.usbserial-146', {baudRate:9600, autoOpen:false});

@@ -183,7 +183,7 @@ var setupObj = {
 
 function resetObj(data) {
     setupObj = data
-    console.log(setupObj)
+    // console.log(setupObj)
 }
 
 function motorOn(){
@@ -1073,7 +1073,7 @@ module.exports = {
 
 function exitHandler(options, err) {
     if (options.cleanup) allOff();
-    console.log('clean');
+    console.log('clean exit');
     if (err) console.log(err.stack);
     if (options.exit) process.exit();
 }
