@@ -11,18 +11,22 @@ var async = require("async")
 var dmx = new DMX()
 var channel = 0;
 var maxChannels = 216;
+var haloStart = 201
+var haloPixels = 5
 var colorPosition = 0;
 var duration = 300
 var maxPixels = 72;
 var currentPixel = 1;
+var mainInterval;
 var sparkleInterval;
 var sparkleBlockInterval
 var blockChaseInterval
 var radiationInterval
 var chaseInterval;
 var vortexInterval;
-var maxBlocks = 6
+var maxBlocks = 12
 var rickBeatTimer = 520
+var quarterTime = 94;
 var offColor = Color({
         r: 0,
         g: 0,
@@ -175,9 +179,9 @@ var setupObj = {
     }]
 }
 
-function resetObj(data){
-  setupObj=data
-  console.log(setupObj)
+function resetObj(data) {
+    setupObj = data
+    console.log(setupObj)
 }
 
 function done() {
@@ -193,12 +197,22 @@ var setPixel = function(pixelNum, color) {
     var pixObj = {};
     var startChannelNum = pixelNum * 3
     if (pixelNum > maxPixels || pixelNum < 1) {
-        console.log("Bad pixelNum ", pixelNum);
+        //console.log("Bad pixelNum ", pixelNum);
     } else {
         pixObj[startChannelNum - 3] = color.red()
         pixObj[startChannelNum - 2] = color.green()
         pixObj[startChannelNum - 1] = color.blue()
     }
+    //console.log(JSON.stringify(pixObj));
+    return pixObj;
+}
+var setHalo = function(number, color) {
+    var pixObj = {};
+    var startHaloNum = haloStart + number * 3
+    pixObj[startHaloNum - 3] = color.red()
+    pixObj[startHaloNum - 2] = color.green()
+    pixObj[startHaloNum - 1] = color.blue()
+
     //console.log(JSON.stringify(pixObj));
     return pixObj;
 }
@@ -210,7 +224,7 @@ var setBlock = function(blockNumber, color) {
     var startChannelNum = (startPixelNum * 3) - 3
     var stopChannelNum = (stopPixelNum * 3) - 3
     if (startPixelNum > maxPixels || startPixelNum < 1) {
-        console.log("Bad pixelNum ", startPixelNum);
+        //console.log("Bad pixelNum ", startPixelNum);
     } else {
         for (var i = startChannelNum; i < stopChannelNum + 1; i += 3) {
             pixObj[i] = color.red()
@@ -230,7 +244,7 @@ var setBlockPixel = function(blockNumber, pixel, color) {
     var startChannelNum = (currentPixel * 3) - 3
         //var stopChannelNum = (stopPixelNum * 3) - 3
     if (startPixelNum > maxPixels || startPixelNum < 1) {
-        console.log("Bad pixelNum ", startPixelNum);
+        //console.log("Bad pixelNum ", startPixelNum);
     } else {
         pixObj[startChannelNum] = color.red();
         pixObj[startChannelNum + 1] = color.green();
@@ -295,6 +309,9 @@ function onAllColor(color) {
     var allOut = {}
     for (var i = 1; i < maxBlocks; i++) {
         merge(allOut, setBlock(i, color))
+    }
+    for(var j=0;j<haloPixels;j++){
+        merge(allOut, setHalo(j, color))
     }
     universe.update(allOut)
 }
@@ -368,7 +385,7 @@ function chase() {
             colorCounter++;
             if (colorCounter > 5) {
                 //colorCounter = 1;
-                clearInterval(chaseInterval);
+                clearInterval(mainInterval);
                 startAnimation(duration);
                 return true;
             } else {
@@ -458,14 +475,19 @@ function sparkleBlock(color) {
     //     });
     //     universe.update(setPixel(previousPixel, off))
     // }
+    var bufOut = {}
     var randomBlock = randomInt(1, maxBlocks);
+    var randomHalo = randomInt(1, haloPixels);
     // var currentColor = Color(randomColor.randomColor({
     //    luminosity: 'dark',
     //    format: 'rgb' // e.g. 'rgb(225,200,20)'
     // }))
-    universe.update(setBlock(randomBlock, color))
+    merge(bufOut,setBlock(randomBlock, color))
+    merge(bufOut,setHalo(randomHalo, color))
+    universe.update(bufOut)
     setTimeout(function() {
         turnOffBlock(randomBlock);
+        turnOffHalo(randomHalo);
     }, 100);
     //previousPixel = randomPixel;
 }
@@ -488,22 +510,31 @@ function turnOffBlock(block) {
     universe.update(setBlock(block, off))
 }
 
+function turnOffHalo(block) {
+    var off = Color({
+        r: 0,
+        g: 0,
+        b: 0
+    });
+    universe.update(setHalo(block, off))
+}
+
 function startChase() {
-    chaseInterval = setInterval(
+    mainInterval = setInterval(
         function() {
             chase()
         }, 10)
 }
 
 function startSparkle() {
-    sparkleInterval = setInterval(
+    mainInterval = setInterval(
         function() {
             sparkle()
         }, 2)
 }
 
 function startSparkleBlock() {
-    sparkleBlockInterval = setInterval(
+    mainInterval = setInterval(
         function() {
             var currentColor = Color(randomColor.randomColor({
                 luminosity: 'dark',
@@ -518,7 +549,7 @@ function startBlockChase(adder) {
     currentBlock = 1;
     currentHue = 0;
     blockChaseHueAdder = adder;
-    blockChaseInterval = setInterval(
+    mainInterval = setInterval(
         function() {
             blockChase(94)
         }, rickBeatTimer)
@@ -530,6 +561,7 @@ function randomInt(min, max) {
 var currentBlock = 1;
 var currentHue = 0;
 var blockChaseHueAdder = 2;
+
 function blockChase(interval, callback) {
     // var currentColor = Color({
     //     r: randomInt(0, 255),
@@ -537,6 +569,7 @@ function blockChase(interval, callback) {
     //     b: randomInt(0, 255)
     // });
     //var currentColor = Color.rgb(255, 0, 0);
+    var outBuf = {}
     var currentColor = Color({
         h: currentHue,
         s: 100,
@@ -555,14 +588,19 @@ function blockChase(interval, callback) {
     //    format: 'rgb' // e.g. 'rgb(225,200,20)'
     // }))
     var current = currentBlock;
-    universe.update(setBlock(currentBlock, currentColor));
+    //universe.update(setBlock(currentBlock, currentColor));
+    merge(outBuf,setBlock(currentBlock, currentColor));
     currentBlock++
     currentHue += blockChaseHueAdder
     if (currentBlock > maxBlocks) {
         currentBlock = 1;
-        console.log("calling back");
+        //console.log("calling back");
         return callback;
     }
+    for (var j = 0; j < haloPixels; j++) {
+        merge(outBuf, setHalo(j, currentColor))
+    }
+    universe.update(outBuf);
     if (currentHue > 360) {
         currentHue = 0;
     }
@@ -570,6 +608,81 @@ function blockChase(interval, callback) {
         blockChase(interval);
         turnOffBlock(current);
     }, interval / 2);
+}
+
+//var currentBlock = 1;
+
+var currentHueStart = 0;
+
+function haloHue() {}
+
+function blockHue(interval, callback) {
+    var outBuf = {}
+    var currentAllHue = currentHueStart;
+    var blockHueAdder = 32;
+    for (var i = 1; i < maxBlocks; i++) {
+        var currentColor = Color({
+            h: currentAllHue,
+            s: 100,
+            l: 50
+        });
+        merge(outBuf, setBlock(i, currentColor))
+        currentAllHue += blockHueAdder
+        if (currentHue > 360) {
+            currentHue = 0;
+        }
+    }
+    for (var j = 0; j < haloPixels; j++) {
+        var currentColor = Color({
+            h: currentAllHue,
+            s: 100,
+            l: 50
+        });
+        merge(outBuf, setHalo(j, currentColor))
+    }
+    currentHueStart += blockHueAdder;
+    if (currentHueStart > 360) {
+        currentHueStart = 0;
+    }
+    universe.update(outBuf);
+    // setTimeout(function() {
+    //     blockHue(interval);
+    // }, quarterTime);
+}
+
+function blockHueBlink(interval, callback) {
+    var outBuf = {}
+    var currentAllHue = currentHueStart;
+    var blockHueAdder = 32;
+    for (var i = 1; i < maxBlocks; i++) {
+        var currentColor = Color({
+            h: currentAllHue,
+            s: 100,
+            l: 50
+        });
+        merge(outBuf, setBlock(i, currentColor))
+        currentAllHue += blockHueAdder
+        if (currentHue > 360) {
+            currentHue = 0;
+        }
+    }
+    for (var j = 0; j < haloPixels; j++) {
+        var currentColor = Color({
+            h: currentAllHue,
+            s: 100,
+            l: 50
+        });
+        merge(outBuf, setHalo(j, currentColor))
+    }
+    currentHueStart += blockHueAdder;
+    if (currentHueStart > 360) {
+        currentHueStart = 0;
+    }
+    universe.update(outBuf);
+    setTimeout(function() {
+        allOff()
+            //blockHue(interval);
+    }, quarterTime);
 }
 
 var currentBlockPixel = 1;
@@ -616,7 +729,8 @@ function radiation(interval, color, callback) {
 var currentVotexBlockPixel = 4;
 var maxPixelsPerBlock = 4;
 var isVotexOn = true;
-function vortex(interval,color, callback) {
+
+function vortex(interval, color, callback) {
     var blockPixObj = {};
     var currentColor;
     if (isVotexOn) {
@@ -639,7 +753,7 @@ function vortex(interval,color, callback) {
     }
     universe.update(blockPixObj);
     currentVotexBlockPixel--
-    if (currentVotexBlockPixel == 0 ) {
+    if (currentVotexBlockPixel == 0) {
         currentVotexBlockPixel = maxPixelsPerBlock;
         if (isVotexOn) {
             isVotexOn = !isVotexOn;
@@ -653,26 +767,52 @@ function vortex(interval,color, callback) {
     //     radiation(interval);
     // }, interval);
 }
+
 function startRadiation() {
     var currentColor = Color(randomColor.randomColor({
         luminosity: 'dark',
         //hue: 'monochrome',
         format: 'rgb' // e.g. 'rgb(225,200,20)'
     }))
-    radiationInterval = setInterval(
+    mainInterval = setInterval(
         function() {
-            radiation(94,currentColor)
+            radiation(94, currentColor)
         }, rickBeatTimer)
 }
+
+function startBlockHue() {
+    var currentColor = Color(randomColor.randomColor({
+        luminosity: 'dark',
+        //hue: 'monochrome',
+        format: 'rgb' // e.g. 'rgb(225,200,20)'
+    }))
+    mainInterval = setInterval(
+        function() {
+            blockHue(94)
+        }, rickBeatTimer)
+}
+
+function startBlockHueBlink() {
+    var currentColor = Color(randomColor.randomColor({
+        luminosity: 'dark',
+        //hue: 'monochrome',
+        format: 'rgb' // e.g. 'rgb(225,200,20)'
+    }))
+    mainInterval = setInterval(
+        function() {
+            blockHueBlink(94)
+        }, rickBeatTimer)
+}
+
 function startVortex() {
     var currentColor = Color(randomColor.randomColor({
         luminosity: 'dark',
         //hue: 'monochrome',
         format: 'rgb' // e.g. 'rgb(225,200,20)'
     }))
-    vortexInterval = setInterval(
+    mainInterval = setInterval(
         function() {
-            vortex(94,currentColor)
+            vortex(94, currentColor)
         }, rickBeatTimer)
 }
 
@@ -712,15 +852,15 @@ function activateNumber(number, callback) {
             merge(activeObj, setBlock(setupObj.number[i].numValue, Color(setupObj.number[i].standbyColor)))
         } else if (setupObj.number[i].numValue == number) {
             merge(activeObj, setBlock(setupObj.number[i].numValue, Color(setupObj.number[i].activeColor)))
-        }else if (number == 0){
+        } else if (number == 0) {
             merge(activeObj, setBlock(setupObj.number[i].numValue, offColor))
-        }else {
+        } else {
             merge(activeObj, setBlock(setupObj.number[i].numValue, offColor))
         }
     }
     //console.log(activeObj);
     universe.update(activeObj);
-    callback(null,number)
+    callback(null, number)
 }
 
 function activateEleven(callback) {
@@ -728,24 +868,28 @@ function activateEleven(callback) {
         one: function(callback) {
             startBlockChase(2);
             setTimeout(function() {
-                clearInterval(blockChaseInterval)
+                clearInterval(mainInterval)
                 callback(null, 1)
             }, 10000)
         },
         two: function(callback) {
-            startRadiation()
-            //radiation(94, radiationDone());
+            startBlockHueBlink()
+                //radiation(94, radiationDone());
             setTimeout(function() {
-                clearInterval(radiationInterval)
+                clearInterval(mainInterval)
                 callback(null, 2)
             }, 8000)
         },
         three: function(callback) {
             //startRadiation()
-            var blinkInterval = setInterval(function(){
-              onAllColor(Color({r:255,g:255,b:255}))
-              fadeOff(200)
-            },rickBeatTimer)
+            var blinkInterval = setInterval(function() {
+                onAllColor(Color({
+                    r: 225,
+                    g: 255,
+                    b: 255
+                }))
+                fadeOff(200)
+            }, rickBeatTimer)
             setTimeout(function() {
                 clearInterval(blinkInterval)
                 callback(null, 3)
@@ -753,17 +897,18 @@ function activateEleven(callback) {
         },
         four: function(callback) {
             //startRadiation()
-            startRadiation();
+            startRadiation(); //
             setTimeout(function() {
-                clearInterval(radiationInterval)
+                clearInterval(mainInterval)
                 callback(null, 4)
             }, 8000)
         },
         five: function(callback) {
             //startRadiation()
+            //startBlockChase(32);
             startBlockChase(32);
             setTimeout(function() {
-                clearInterval(blockChaseInterval)
+                clearInterval(mainInterval)
                 callback(null, 5)
             }, 8000)
         },
@@ -771,30 +916,35 @@ function activateEleven(callback) {
             //startRadiation()
             startSparkleBlock();
             setTimeout(function() {
-                clearInterval(sparkleBlockInterval)
+                clearInterval(mainInterval)
                 callback(null, 6)
             }, 8000)
         },
         seven: function(callback) {
             //startRadiation()
-            console.log("Starting vortex");
-            startVortex();
+            //console.log("Starting vortex");
+            startBlockHue();
             setTimeout(function() {
-                clearInterval(vortexInterval)
+                clearInterval(mainInterval)
                 callback(null, 7)
             }, 9000)
         }
     }, function(err, results) {
         // results is now equal to: {one: 1, two: 2}
-        var blinkInterval = setInterval(function(){
-          onAllColor(Color({r:245,g:255,b:255}))
-          fadeOff((200/4))
-      },rickBeatTimer/4)
+        var blinkInterval = setInterval(function() {
+            onAllColor(Color({
+                r: 245,
+                g: 255,
+                b: 255
+            }))
+            fadeOff((200 / 4))
+        }, rickBeatTimer / 4)
         setTimeout(function() {
             clearInterval(blinkInterval)
-            //callback(null, 3)
+                //callback(null, 3)
             allOff()
-            callback(null,"done")
+            //activateEleven()
+                callback(null,"done")
         }, 2000)
     });
 }
@@ -821,7 +971,7 @@ function activateNumberTest(number, callback) {
                 merge(activeObj, setBlock(setupObj.number[i].numValue - maxTest, Color(setupObj.number[i].standbyColor)))
             } else if (setupObj.number[i].numValue == number) {
                 merge(activeObj, setBlock(setupObj.number[i].numValue - maxTest, Color(setupObj.number[i].activeColor)))
-            }else if (number == 0){
+            } else if (number == 0) {
                 merge(activeObj, setBlock(setupObj.number[i].numValue, offColor))
             } else {
                 merge(activeObj, setBlock(setupObj.number[i].numValue - maxTest, offColor))
@@ -830,18 +980,32 @@ function activateNumberTest(number, callback) {
     }
     //console.log(activeObj);
     universe.update(activeObj);
-    callback(null,number)
+    callback(null, number)
 }
 //////////////////////////////////////////////////////////////
 allOff()
 duration = 520; // ~113 bpm = 530
-//startAnimation(duration)
-//
-// startBlockChase();
-// setTimeout(function(){
-//   clearInterval(blockChaseInterval)
-// },10000)
-//startBlockChase(32);
+// activateEleven(function() {
+//         console.log(done);
+//     })
+
+    //startAnimation(duration)
+    //
+    // startBlockChase();
+    // var currentAllHue = 0;
+    // setInterval(function(){
+    //     //var currentAllHue = currentHueStart;
+    //     for (var j = 0; j < haloPixels; j++) {
+    //         var currentColor = Color({
+    //             h: currentAllHue,
+    //             s: 100,
+    //             l: 50
+    //         });
+    //         universe.update(setHalo(j, currentColor))
+    //     }
+    //     currentAllHue += 90;
+    // },1000)
+    //startBlockChase(32);
 
 // var iter = 1;
 // var up = 1;
@@ -885,7 +1049,7 @@ duration = 520; // ~113 bpm = 530
 module.exports = {
     activateNumber: activateNumber,
     activateEleven: activateEleven,
-    activateNumberTest:activateNumberTest,
+    activateNumberTest: activateNumberTest,
     resetObj: resetObj
 }
 
