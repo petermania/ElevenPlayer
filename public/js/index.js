@@ -23,6 +23,15 @@ socket.on('set_serial',function(data){
   }
 })
 
+socket.on('set_motor',function(data){
+  if(data.motor==true){
+    $('[name="toggle_motor"]').removeClass('btn-danger').addClass('btn-success').text("Motor On")
+  }
+  else if (data.motor==false){
+    $('[name="toggle_motor"]').removeClass('btn-success').addClass('btn-danger').text("Motor Off")
+  }
+})
+
 $(document).ready(function(){
   console.log(settings)
   console.log("color: "+settings[0]['activeColor']["red"])
@@ -148,5 +157,11 @@ $(document).ready(function(){
     e.stopPropagation()
     e.preventDefault()
     socket.emit('toggle_serial')
+  })
+
+  $('[name="toggle_motor"]').on('click',function(e){
+    e.stopPropagation()
+    e.preventDefault()
+    socket.emit('toggle_motor')
   })
 })

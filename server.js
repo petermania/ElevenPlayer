@@ -28,9 +28,10 @@ app.use(express.static(__dirname + '/public'))
 app.set('view engine', 'pug')
 
 //USER VARS
-var ledTest=false
+var ledTest = false
 var zero=0
 var knobTimer = 10000
+var motor = true
 
 var song
 var songs
@@ -137,7 +138,7 @@ app.get('/',function(req,res){
         globals.find({}).toArray(function(err2, obj2){
           loadSongs(db, function(){
             db.close()
-            res.render('index',{settings:settings, timer:obj2[0].timer, songs:songs, currentValue:0,currentNumber:0, title:'ElevenPlayer Calibration'})
+            res.render('index',{settings:settings, timer:obj2[0].timer, zero:obj2[0].zero, songs:songs, currentValue:0,currentNumber:0, title:'ElevenPlayer Calibration'})
           })
         })
     })//find all numbers
@@ -201,7 +202,7 @@ app.get('/save-settings',function(req,res){
         assert.equal(null, err)
         console.log("numbers matched: "+r.matchedCount)
         globals.updateOne({},{$set:
-            {timer:req.query.timer}
+            {timer:req.query.timer,zero:req.query.zero}
           },
           {upsert:false},
           function(err2,r2){
@@ -263,6 +264,11 @@ io.on('connection', function(client) {
       console.log('serial set to: '+serial)
       io.emit('set_serial',{serial:serial})
     })
+    client.on('toggle_motor',function(){
+      motor=!motor
+      console.log('motor set to: '+motor)
+      io.emit('set_motor',{motor:motor})
+    })
 });
 
 var loadSongs = function(db, callback){
@@ -316,7 +322,7 @@ var checkTime = function(){
       resetKnob()
     }
   }
-  if(reset==true&&currentValue==0){
+  if(reset==true&&currentValue<=zero){
     playZero()
   }
   else if(reset==true){
@@ -324,8 +330,8 @@ var checkTime = function(){
     adjustKnob()
     io.emit('receive_knob',{currentValue:currentValue,currentNumber:currentNumber})
   }
-  if(currentValue==0){
-    dmxController.motorOff()
+  if(currentValue<=zero){
+    if(motor) dmxController.motorOff()
   }
 }
 
@@ -333,7 +339,7 @@ var resetKnob=function(){
     console.log("reset knob triggered")
     reset=true
     playable=false
-    dmxController.motorOn()
+    if(motor) dmxController.motorOn()
     if(currentNumber!=0&&eleven==false) {
       for(var i=0;i<Object.keys(pause).length;i++){
         pause[Object.keys(pause)[i]].pause()
@@ -549,6 +555,7 @@ function playZero(){
   io.emit('receive_knob',{currentValue:currentValue,currentNumber:currentNumber})
   if(ledTest) dmxController.activateNumberTest(0,function(){})
   else dmxController.activateNumber(0,function(){})
+  if(motor) dmxController.motorOff()
   songSelection()
 
 }
