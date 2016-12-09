@@ -8,19 +8,7 @@ SerialPort.list(function (err, ports) {
     console.log(port.manufacturer);
   });
 });
-// var port = new SerialPort('/dev/cu.usbmodem31', {baudRate:115200, autoOpen:false});
-// function setup(callback){
-//   port.open(function (err) {
-//   if (err) {
-//     return console.log('Error opening port: ', err.message);
-//   }
-// });
-//   dataCallback = callback;
-// }
-// port.on('open', function() {
-//   console.log("Port Open");
-// });
-var port = new SerialPort('/dev/cu.usbserial-00002014', {baudRate:9600, autoOpen:false});
+var port = new SerialPort('/dev/cu.usbmodem1411', {baudRate:115200, autoOpen:false});
 function setup(callback){
   port.open(function (err) {
   if (err) {

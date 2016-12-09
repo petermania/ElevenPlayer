@@ -14,6 +14,15 @@ socket.on('receive_knob',function(data){
   $('[name="current_active"]').val(currentNumber)
 })
 
+socket.on('set_serial',function(data){
+  if(data.serial==true){
+    $('[name="toggle_serial"]').removeClass('btn-danger').addClass('btn-success').text("Serial On")
+  }
+  else if (data.serial==false){
+    $('[name="toggle_serial"]').removeClass('btn-success').addClass('btn-danger').text("Serial Off")
+  }
+})
+
 $(document).ready(function(){
   console.log(settings)
   console.log("color: "+settings[0]['activeColor']["red"])
@@ -52,11 +61,15 @@ $(document).ready(function(){
     $('[name="standbyColor"]').css('background-color', "rgb("+red+","+green+","+blue+")")
   })
 
-  $('.set-lower').on("click",function(e){
+  $('[name="set-lower"]').on("click",function(e){
+    e.stopPropagation();
+    e.preventDefault();
     $('[name="lower_value"]').val(currentValue)
   })
 
-  $('.set-upper').on("click",function(e){
+  $('[name="set-upper"]').on("click",function(e){
+    e.stopPropagation();
+    e.preventDefault();
     $('[name="upper_value"]').val(currentValue)
   })
 
@@ -124,10 +137,16 @@ $(document).ready(function(){
     $('[name="standbyColor"]').css('background-color', "rgb("+red+","+green+","+blue+")")
   })
 
-  $('[name="knob"]').on('click',function(){
-    if($(this).val()=="up") currentValue++
-    else if($(this).val()=="down") currentValue--
+  $('[name="knob"]').on('click',function(e){
+    if($(this).val()=="up") currentValue+=10
+    else if($(this).val()=="down") currentValue-=10
     $('[name="current_knob"]').val(currentValue)
     socket.emit('send_knob',{currentValue:currentValue})
+  })
+
+  $('[name="toggle_serial"]').on('click',function(e){
+    e.stopPropagation()
+    e.preventDefault()
+    socket.emit('toggle_serial')
   })
 })

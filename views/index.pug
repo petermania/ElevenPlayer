@@ -4,10 +4,12 @@ div.container
     div.card(style={'margin-top':'10px'})
       h3.card-header Knob Settings
       div.card-block
-        form.form-horizontal(action="/play-eleven", method="get")
-          div.form-group.row
-            div.col-xs-4
-              button.btn.btn-large.btn-success(name="play-eleven", type="submit", value="play") Play 11
+        div.form-group.row
+          form.form-horizontal(action="/play-eleven", method="get")
+              div.col-xs-4
+                button.btn.btn-large.btn-success(name="play-eleven", type="submit", value="play") Play 11
+          div.col-xs-4
+            button.btn.btn-large.btn-success(name="toggle_serial", type="submit", value="serial on") Serial On
         div.form-group.row
           div.col-xs-4
             div.btn-group(role="group")
@@ -27,7 +29,7 @@ div.container
             div.col-xs-12
               div.input-group
                 span.input-group-addon Timer
-                input(type="text", class="form-control", value="0", 'aria-describedby'="basic-addon1")
+                input(type="text", class="form-control", value=timer, 'aria-describedby'="basic-addon1", name="timer")
           div.form-group.row
             div.col-xs-3
               div.dropdown
@@ -157,4 +159,5 @@ script(type="text/javascript").
   var settings = !{JSON.stringify(settings)}
   var currentValue=#{currentValue}
   var currentNumber=#{currentNumber}
+  var timer=#{timer}
 script(src="/js/index.js")

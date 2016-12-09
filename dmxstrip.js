@@ -184,6 +184,14 @@ function resetObj(data) {
     console.log(setupObj)
 }
 
+function motorOn(){
+
+}
+
+function motorOff(){
+
+}
+
 function done() {
     console.log('DONE')
     duration -= 100;
@@ -1049,8 +1057,10 @@ duration = 520; // ~113 bpm = 530
 module.exports = {
     activateNumber: activateNumber,
     activateEleven: activateEleven,
-    activateNumberTest: activateNumberTest,
-    resetObj: resetObj
+    activateNumberTest:activateNumberTest,
+    resetObj: resetObj,
+    motorOn: motorOn,
+    motorOff:motorOff
 }
 
 
