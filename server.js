@@ -331,7 +331,7 @@ var checkTime = function(){
     io.emit('receive_knob',{currentValue:currentValue,currentNumber:currentNumber})
   }
   if(currentValue<=zero){
-    if(motor) dmxController.motorOff()
+    if(motor) dmxController.stopMotor()
   }
 }
 
