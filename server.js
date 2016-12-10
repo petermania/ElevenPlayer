@@ -18,7 +18,7 @@ var io = require('socket.io')(server)
 var MongoClient = require('mongodb').MongoClient
 var assert = require('assert')
 var fs = require('fs')
-var loudness = require('loudness');
+//var loudness = require('loudness');
 
 
 var url = 'mongodb://localhost:27017/ElevenPlayer'
