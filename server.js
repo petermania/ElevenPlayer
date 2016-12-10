@@ -34,6 +34,7 @@ var knobTimer = 10000
 var motor = true
 var gotSerialData = false
 var booting = true
+var movementThreshold = 10
 
 var song
 var songs
@@ -108,7 +109,7 @@ var setupSongs=function(){
         console.log("total keys in playback: "+Object.keys(playback).length)
         playable=true
         for(var i=0;i<total;i++) {
-          pause[Object.keys(playback)[i]]=play(playback[Object.keys(playback)[i]])
+          pause[Object.keys(playback)[i]]=play(playback[Object.keys(playback)[i]],{loop:true})
           pause[Object.keys(playback)[i]].pause()
         }
         console.log("total keys in pause: "+Object.keys(pause).length)
@@ -348,7 +349,7 @@ var resetKnob=function(){
     reset=true
     playable=false
     if(motor) dmxController.startMotor(currentValue,function(){
-      if(currentNumber>=1){
+      if(currentNumber>=1&&currentValue>zero){
         dmxController.startMotor(currentValue,function(){
 
         })
@@ -408,7 +409,7 @@ var changeNumber=function(col,num,callback){
         for(var i=0;i<Object.keys(pause).length;i++){
           pause[Object.keys(pause)[i]].pause()
         }
-        pause[tracks[currentNumber-1].toString()]=play(playback[tracks[currentNumber-1].toString()])
+        pause[tracks[currentNumber-1].toString()]=play(playback[tracks[currentNumber-1].toString()],{loop:true})
         // pause[tracks[currentNumber-1].toString()]=play(playback[tracks[currentNumber-1].toString()])
     }
     if(ledTest) dmxController.activateNumberTest(currentNumber,function(){})
@@ -521,7 +522,7 @@ function playEleven(callback){
     pause[Object.keys(pause)[i]].pause()
   }
   currentNumber=11
-  pause['eleven']=play(playback['eleven'])
+  pause['eleven']=play(playback['eleven'],{loop:true})
   dmxController.activateEleven(function(){
     dmxController.startMotor(currentValue)
     pause['eleven'].pause()
@@ -533,7 +534,7 @@ function playEleven(callback){
 
 function serialData(data){
   if(serial==true){
-    if(data!=currentValue){
+    if(Math.abs(data-currentValue)>movementThreshold&&!reset){
       // console.log(data)
       timerCount= new Date().getTime()
       // if(Math.abs(dataBuffer[0]-data)<40&&Math.abs(dataBuffer[1]-data)<40&&Math.abs(dataBuffer[2]-data)<40){
@@ -553,6 +554,18 @@ function serialData(data){
       // dataBuffer[2]=dataBuffer[1]
       // dataBuffer[1]=dataBuffer[0]
       // dataBuffer[0]=data
+    }else if(data!=currentValue&&reset){
+      timerCount= new Date().getTime()
+      // if(Math.abs(dataBuffer[0]-data)<40&&Math.abs(dataBuffer[1]-data)<40&&Math.abs(dataBuffer[2]-data)<40){
+        console.log("data:"+data)
+        currentValue=data
+        gotSerialData = true;
+        // if(reset&&Math.abs((dataBuffer[0]+dataBuffer[1]+dataBuffer[2])/3-dataBuffer[0]<5)){
+        //   reset=false
+        //   "reset interrupt"
+        //   dmxController.stopMotor()
+        // }
+        adjustKnob()
     }
   }
 }

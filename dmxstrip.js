@@ -869,7 +869,7 @@ function activateEleven(callback) {
             setTimeout(function() {
                 clearInterval(blinkInterval)
                 callback(null, 3)
-            }, 9000)
+            }, 8000)
         },
         four: function(callback) {
             //startRadiation()
@@ -909,7 +909,7 @@ function activateEleven(callback) {
             setTimeout(function() {
                 clearInterval(mainInterval)
                 callback(null, 7)
-            }, 9000)
+            }, 8000)
         }
     }, function(err, results) {
         // results is now equal to: {one: 1, two: 2}
@@ -965,7 +965,8 @@ function activateNumberTest(number, callback) {
     callback(null, number)
 }
 function startMotor(currentEncoder,callback){
-    var runTime = parseInt((currentEncoder*.9) * 2.424);
+  if(currentEncoder>150){
+    var runTime = parseInt((currentEncoder*(.9+.11*(currentEncoder/3300))) * 2.424);
     console.log("runTime: ",runTime);
     var motorObj = {}
     motorObj[motorAddress] = 255;
@@ -973,8 +974,12 @@ function startMotor(currentEncoder,callback){
     var motorTimer = setTimeout(function(){
         //motorObj[motorTestAddress] = 0;
         console.log("timed out")
-        stopMotor(callback);
+        stopMotor(callback)
     },runTime)
+  }else{
+    stopMotor(callback)
+  }
+
 }
 function stopMotor(callback){
     console.log("motor stopped")
@@ -984,7 +989,7 @@ function stopMotor(callback){
     setTimeout(function(){
       if (typeof callback === "function") {
     // safe to use the function
-      callback();
+      return callback();
     }
 
     },2000)
