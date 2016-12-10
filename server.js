@@ -339,7 +339,7 @@ var resetKnob=function(){
     console.log("reset knob triggered")
     reset=true
     playable=false
-    if(motor) dmxController.motorOn()
+    if(motor) dmxController.startMotor(currentValue)
     if(currentNumber!=0&&eleven==false) {
       for(var i=0;i<Object.keys(pause).length;i++){
         pause[Object.keys(pause)[i]].pause()
@@ -527,7 +527,7 @@ function serialData(data){
         if(reset&&Math.abs((dataBuffer[0]+dataBuffer[1]+dataBuffer[2])/3-dataBuffer[0]<5)){
           reset=false
           "reset interrupt"
-          dmxController.motorOff()
+          dmxController.stopMotor()
         }
         adjustKnob()
       }
@@ -555,7 +555,5 @@ function playZero(){
   io.emit('receive_knob',{currentValue:currentValue,currentNumber:currentNumber})
   if(ledTest) dmxController.activateNumberTest(0,function(){})
   else dmxController.activateNumber(0,function(){})
-  if(motor) dmxController.motorOff()
   songSelection()
-
 }
