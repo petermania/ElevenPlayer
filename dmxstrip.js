@@ -12,6 +12,7 @@ var dmx = new DMX()
 var channel = 0;
 var maxChannels = 216;
 var haloStart = 201
+var motorAddress = 300
 var haloPixels = 5
 var colorPosition = 0;
 var duration = 300
@@ -964,9 +965,43 @@ function activateNumberTest(number, callback) {
     universe.update(activeObj);
     callback(null, number)
 }
+function startMotor(currentEncoder){
+    var runTime = currentEncoder * 2.424;
+    console.log("runTime: ",runTime);
+    var motorObj = {}
+    motorObj[motorAddress] = 255;
+    universe.update(motorObj);
+    var motorTimer = setTimeout(function(){
+        //motorObj[motorTestAddress] = 0;
+        stopMotor();
+    },runTime)
+}
+function stopMotor(){
+    var motorObj = {}
+    motorObj[motorAddress] = 0;
+    universe.update(motorObj);
+}
+// var motorTestAddress = 300;
+// function testMotor(){
+//     var motorObj = {}
+//     console.log(motorAddress);
+//     motorObj[motorTestAddress] = 255;
+//     universe.update(motorObj);
+//     setTimeout(function(){
+//         motorObj[motorTestAddress] = 0;
+//         universe.update(motorObj);
+//         // setTimeout(function(){
+//         //     //motorTestAddress++;
+//         //     testMotor()
+//         // },1000)
+//     },8000);
+// }
 //////////////////////////////////////////////////////////////
 allOff()
 duration = 520; // ~113 bpm = 530
+
+//testMotor();
+//startMotor(3300);
 // activateEleven(function() {
 //         console.log(done);
 //     })
@@ -1039,8 +1074,8 @@ module.exports = {
     activateEleven: activateEleven,
     activateNumberTest:activateNumberTest,
     resetObj: resetObj,
-    motorOn: motorOn,
-    motorOff:motorOff
+    startMotor: startMotor,
+    stopMotor :stopMotor
 }
 
 
@@ -1050,7 +1085,7 @@ module.exports = {
 
 
 function exitHandler(options, err) {
-    if (options.cleanup) allOff();
+    if (options.cleanup) stopMotor(); allOff();
     console.log('clean exit');
     if (err) console.log(err.stack);
     if (options.exit) process.exit();
