@@ -34,9 +34,9 @@ var offColor = Color({
     })
     // var universe = dmx.addUniverse('demo', 'enttec-usb-dmx-pro', '/dev/cu.usbserial-6AVNHXS8')
     // var universe = dmx.addUniverse('demo', 'enttec-open-usb-dmx', '/dev/cu.usbserial-6AVNHXS8')
-    var universe = dmx.addUniverse('1', 'enttec-usb-dmx-pro', '/dev/cu.usbserial-EN132514') // SHOW DMX BOX
+    //var universe = dmx.addUniverse('1', 'enttec-usb-dmx-pro', '/dev/cu.usbserial-EN132514') // SHOW DMX BOX
 
-// var universe = dmx.addUniverse('1', 'enttec-usb-dmx-pro', '/dev/cu.usbserial-EN199484') // LEIFS DMX BOX
+ var universe = dmx.addUniverse('1', 'enttec-usb-dmx-pro', '/dev/cu.usbserial-EN199484') // LEIFS DMX BOX
 var setupObj = {
     "number": [{
         "numValue": 1,
@@ -585,18 +585,6 @@ function blockChase(interval, callback) {
         s: 100,
         l: 50
     });
-    //var currentColor = Color({hue: currentHue, saturation: 100, lightness: 50})
-    //currentColor.hue(currentHue);
-    //currentColor.rotate(currentHue);
-    //console.log(currentColor.hsl().string());
-    //var currentColor = Color.hue(currentHue)
-    //currentColor = Color.saturation(100);
-    //currentColor = Color.saturationv(100);
-    // var currentColor = Color(randomColor.randomColor({
-    //    luminosity: 'dark',
-    //    //hue: 'monochrome',
-    //    format: 'rgb' // e.g. 'rgb(225,200,20)'
-    // }))
     var current = currentBlock;
     //universe.update(setBlock(currentBlock, currentColor));
     merge(outBuf,setBlock(currentBlock, currentColor));
@@ -655,10 +643,93 @@ function blockHue(interval, callback) {
         currentHueStart = 0;
     }
     universe.update(outBuf);
-    // setTimeout(function() {
-    //     blockHue(interval);
-    // }, quarterTime);
 }
+var alternateBool = true;
+function blockHueAlternate(interval, callback) {
+    var outBuf = {}
+    var currentAllHue = currentHueStart;
+    var blockHueAdder = 32;
+    if(alternateBool){
+        for (var i = 1; i < maxBlocks; i++) {
+            var currentColor = Color({
+                h: currentAllHue,
+                s: 100,
+                l: 50
+            });
+            merge(outBuf, setBlock(i, currentColor))
+            currentAllHue += blockHueAdder
+            if (currentHue > 360) {
+                currentHue = 0;
+            }
+        }
+    }else{
+        for (var j = 0; j < haloPixels; j++) {
+            var currentColor = Color({
+                h: currentAllHue,
+                s: 100,
+                l: 50
+            });
+            merge(outBuf, setHalo(j, currentColor))
+        }
+    }
+    alternateBool = !alternateBool
+    currentHueStart += blockHueAdder;
+    if (currentHueStart > 360) {
+        currentHueStart = 0;
+    }
+    universe.update(outBuf);
+}
+function blockHueAlternateOff(interval, callback) {
+    var outBuf = {}
+    var currentAllHue = currentHueStart;
+    var blockHueAdder = 32;
+    if(alternateBool){
+        for (var i = 1; i < maxBlocks; i++) {
+            var currentColor = Color({
+                h: currentAllHue,
+                s: 100,
+                l: 50
+            });
+            merge(outBuf, setBlock(i, currentColor))
+            currentAllHue += blockHueAdder
+            if (currentHue > 360) {
+                currentHue = 0;
+            }
+        }
+        for (var j = 0; j < haloPixels; j++) {
+            var currentColor = Color({
+                h: currentAllHue,
+                s: 100,
+                l: 50
+            });
+            merge(outBuf, setHalo(j, offColor))
+        }
+    }else{
+        for (var i = 1; i < maxBlocks; i++) {
+            var currentColor = Color({
+                h: currentAllHue,
+                s: 100,
+                l: 50
+            });
+            merge(outBuf, setBlock(i, offColor))
+        }
+        for (var j = 0; j < haloPixels; j++) {
+            var currentColor = Color({
+                h: currentAllHue,
+                s: 100,
+                l: 50
+            });
+            merge(outBuf, setHalo(j, currentColor))
+        }
+    }
+    alternateBool = !alternateBool
+    currentHueStart += blockHueAdder;
+    if (currentHueStart > 360) {
+        currentHueStart = 0;
+    }
+    universe.update(outBuf);
+}
+
 
 function blockHueBlink(interval, callback) {
     var outBuf = {}
@@ -699,96 +770,6 @@ var currentBlockPixel = 1;
 var maxPixelsPerBlock = 4;
 var isOn = true;
 
-function radiation(interval, color, callback) {
-    var blockPixObj = {};
-    var currentColor;
-    if (isOn) {
-        // currentColor = Color({
-        //     r: 255,
-        //     g: 0,
-        //     b: 0
-        // });
-        currentColor = color;
-    } else {
-        currentColor = Color({
-            r: 0,
-            g: 0,
-            b: 0
-        });
-    }
-    for (var i = 0; i < maxBlocks; i++) {
-        merge(blockPixObj, setBlockPixel(i, currentBlockPixel, currentColor));
-        //var current = currentBlock;
-    }
-    universe.update(blockPixObj);
-    currentBlockPixel++
-    if (currentBlockPixel > maxPixelsPerBlock) {
-        currentBlockPixel = 1;
-        if (isOn) {
-            isOn = !isOn;
-        } else {
-            isOn = !isOn;
-            //return callback;
-        }
-
-    }
-    // setTimeout(function() {
-    //     radiation(interval);
-    // }, interval);
-}
-var currentVotexBlockPixel = 4;
-var maxPixelsPerBlock = 4;
-var isVotexOn = true;
-
-function vortex(interval, color, callback) {
-    var blockPixObj = {};
-    var currentColor;
-    if (isVotexOn) {
-        // currentColor = Color({
-        //     r: 0,
-        //     g: 0,
-        //     b: 255
-        // });
-        currentColor = color;
-    } else {
-        currentColor = Color({
-            r: 0,
-            g: 0,
-            b: 0
-        });
-    }
-    for (var i = 0; i < maxBlocks; i++) {
-        merge(blockPixObj, setBlockPixel(i, currentVotexBlockPixel, currentColor));
-        //var current = currentBlock;
-    }
-    universe.update(blockPixObj);
-    currentVotexBlockPixel--
-    if (currentVotexBlockPixel == 0) {
-        currentVotexBlockPixel = maxPixelsPerBlock;
-        if (isVotexOn) {
-            isVotexOn = !isVotexOn;
-        } else {
-            isVotexOn = !isVotexOn;
-            //return callback;
-        }
-
-    }
-    // setTimeout(function() {
-    //     radiation(interval);
-    // }, interval);
-}
-
-function startRadiation() {
-    var currentColor = Color(randomColor.randomColor({
-        luminosity: 'dark',
-        //hue: 'monochrome',
-        format: 'rgb' // e.g. 'rgb(225,200,20)'
-    }))
-    mainInterval = setInterval(
-        function() {
-            radiation(94, currentColor)
-        }, rickBeatTimer)
-}
 
 function startBlockHue() {
     var currentColor = Color(randomColor.randomColor({
@@ -814,31 +795,6 @@ function startBlockHueBlink() {
         }, rickBeatTimer)
 }
 
-function startVortex() {
-    var currentColor = Color(randomColor.randomColor({
-        luminosity: 'dark',
-        //hue: 'monochrome',
-        format: 'rgb' // e.g. 'rgb(225,200,20)'
-    }))
-    mainInterval = setInterval(
-        function() {
-            vortex(94, currentColor)
-        }, rickBeatTimer)
-}
-
-function radiationDone() {
-    console.log("radiation done");
-    duration -= 10;
-    if (duration > 0) {
-        setTimeout(function() {
-            radiation(10, radiationDone());
-        }, duration);
-        //radiation(duration)
-    } else {
-        startSparkleBlock();
-    }
-}
-
 function blockChaseDone() {
     console.log("blockChase done");
     //duration -= 10;
@@ -850,6 +806,11 @@ function blockChaseDone() {
     } else {
         startSparkleBlock();
     }
+}
+function startAnimationFunction(animationFunction){
+    mainInterval = setInterval(
+        animationFunction
+        ,rickBeatTimer)
 }
 
 function activateNumber(number, callback) {
@@ -876,15 +837,20 @@ function activateNumber(number, callback) {
 function activateEleven(callback) {
     async.series({
         one: function(callback) {
-            startBlockChase(2);
+            //startBlockChase(2);
+            currentBlock = 1;
+            currentHue = 0;
+            blockChaseHueAdder = 32;
+            startAnimationFunction(function(){blockChase(94)});//startBlockChase(32)
             setTimeout(function() {
                 clearInterval(mainInterval)
                 callback(null, 1)
             }, 10000)
         },
         two: function(callback) {
-            startBlockHueBlink()
+            //startBlockHueBlink()
                 //radiation(94, radiationDone());
+            startAnimationFunction(function(){blockHueBlink(94)});//blockHueBlink(94)
             setTimeout(function() {
                 clearInterval(mainInterval)
                 callback(null, 2)
@@ -907,7 +873,9 @@ function activateEleven(callback) {
         },
         four: function(callback) {
             //startRadiation()
-            startRadiation(); //
+            //startRadiation(); //
+            //startBlockChase(2);
+            startAnimationFunction(function(){blockHueAlternateOff()});
             setTimeout(function() {
                 clearInterval(mainInterval)
                 callback(null, 4)
@@ -916,7 +884,9 @@ function activateEleven(callback) {
         five: function(callback) {
             //startRadiation()
             //startBlockChase(32);
-            startBlockChase(32);
+            //startBlockChase(32);
+            startSparkleBlock();
+
             setTimeout(function() {
                 clearInterval(mainInterval)
                 callback(null, 5)
@@ -924,7 +894,8 @@ function activateEleven(callback) {
         },
         six: function(callback) {
             //startRadiation()
-            startSparkleBlock();
+            startAnimationFunction(function(){blockHueAlternate()});
+            //startAnimationFunction(function(){startSparkleBlock()});
             setTimeout(function() {
                 clearInterval(mainInterval)
                 callback(null, 6)
@@ -934,6 +905,7 @@ function activateEleven(callback) {
             //startRadiation()
             //console.log("Starting vortex");
             startBlockHue();
+            //startAnimationFunction(function(){startBlockHue()});
             setTimeout(function() {
                 clearInterval(mainInterval)
                 callback(null, 7)
@@ -998,6 +970,12 @@ duration = 520; // ~113 bpm = 530
 // activateEleven(function() {
 //         console.log(done);
 //     })
+// setInterval(function(){
+//      //blockHueAlternate()
+//      blockHueAlternateOff()
+//      blockHueBlink(94)
+// },rickBeatTimer)
+//startAnimationFunction(function(){blockHueAlternateOff()});
 
     //startAnimation(duration)
     //
