@@ -1,6 +1,7 @@
 var SerialPort = require('serialport');
 var dataCallback;
 var dataBuf = "";
+var ready = false;
 SerialPort.list(function (err, ports) {
   ports.forEach(function(port) {
     console.log("comName: "+port.comName);
@@ -8,7 +9,7 @@ SerialPort.list(function (err, ports) {
     console.log("manufacturer: "+port.manufacturer);
   });
 });
-var port = new SerialPort('/dev/cu.usbserial-00001014', {baudRate:9600, autoOpen:false});
+var port = new SerialPort('/dev/cu.usbserial-146', {baudRate:9600, autoOpen:false});
 //var port = new SerialPort('/dev/cu.usbmodem1411', {baudRate:115200, autoOpen:false});
 function setup(callback){
   port.open(function (err) {
@@ -24,6 +25,9 @@ port.on('open', function() {
     var data = Buffer.from('10', 'hex');
     port.write(data)
   },50)
+  setTimeout(function(){
+    ready = true;
+  },10000)
 });
 port.on('data', function (data) {
   dataBuf += data.toString();
@@ -31,10 +35,9 @@ port.on('data', function (data) {
   if(data.length>1){
     //console.log(data.readUIntBE(0, 2));
     var gooddata = data.readUIntBE(0, 2);
-    if(gooddata<4000){
+    if(gooddata<3400 && ready){
       dataCallback(gooddata)
     }
-
   }
   //console.log(data)
   //console.log(parseInt(data, 16));
