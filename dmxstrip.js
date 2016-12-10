@@ -964,21 +964,31 @@ function activateNumberTest(number, callback) {
     universe.update(activeObj);
     callback(null, number)
 }
-function startMotor(currentEncoder){
-    var runTime = currentEncoder * 2.424;
+function startMotor(currentEncoder,callback){
+    var runTime = parseInt((currentEncoder*.9) * 2.424);
     console.log("runTime: ",runTime);
     var motorObj = {}
     motorObj[motorAddress] = 255;
     universe.update(motorObj);
     var motorTimer = setTimeout(function(){
         //motorObj[motorTestAddress] = 0;
-        stopMotor();
+        console.log("timed out")
+        stopMotor(callback);
     },runTime)
 }
-function stopMotor(){
+function stopMotor(callback){
+    console.log("motor stopped")
     var motorObj = {}
     motorObj[motorAddress] = 0;
     universe.update(motorObj);
+    setTimeout(function(){
+      if (typeof callback === "function") {
+    // safe to use the function
+      callback();
+    }
+
+    },2000)
+
 }
 // var motorTestAddress = 300;
 // function testMotor(){

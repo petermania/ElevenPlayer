@@ -32,6 +32,8 @@ var ledTest = false
 var zero=0
 var knobTimer = 10000
 var motor = true
+var gotSerialData = false
+var booting = true
 
 var song
 var songs
@@ -206,6 +208,7 @@ app.get('/save-settings',function(req,res){
           },
           {upsert:false},
           function(err2,r2){
+            zero=req.query.zero
             assert.equal(null, err2)
             console.log("settings matched: "+r.matchedCount)
             sendData()
@@ -330,16 +333,27 @@ var checkTime = function(){
     adjustKnob()
     io.emit('receive_knob',{currentValue:currentValue,currentNumber:currentNumber})
   }
-  if(currentValue<=zero){
-    if(motor) dmxController.stopMotor()
+  if(booting==true&&gotSerialData==true){
+    console.log("resetting at boot with value: "+currentValue)
+    booting=false
+    resetKnob()
   }
+  // if(currentValue<=zero){
+  //   if(motor) dmxController.stopMotor()
+  // }
 }
 
 var resetKnob=function(){
     console.log("reset knob triggered")
     reset=true
     playable=false
-    if(motor) dmxController.startMotor(currentValue)
+    if(motor) dmxController.startMotor(currentValue,function(){
+      if(currentNumber>=1){
+        dmxController.startMotor(currentValue,function(){
+
+        })
+      }
+    })
     if(currentNumber!=0&&eleven==false) {
       for(var i=0;i<Object.keys(pause).length;i++){
         pause[Object.keys(pause)[i]].pause()
@@ -394,7 +408,7 @@ var changeNumber=function(col,num,callback){
         for(var i=0;i<Object.keys(pause).length;i++){
           pause[Object.keys(pause)[i]].pause()
         }
-        pause[tracks[currentNumber-1].toString()].play()
+        pause[tracks[currentNumber-1].toString()]=play(playback[tracks[currentNumber-1].toString()])
         // pause[tracks[currentNumber-1].toString()]=play(playback[tracks[currentNumber-1].toString()])
     }
     if(ledTest) dmxController.activateNumberTest(currentNumber,function(){})
@@ -509,6 +523,7 @@ function playEleven(callback){
   currentNumber=11
   pause['eleven']=play(playback['eleven'])
   dmxController.activateEleven(function(){
+    dmxController.startMotor(currentValue)
     pause['eleven'].pause()
     reset=true
     playable=false
@@ -521,22 +536,23 @@ function serialData(data){
     if(data!=currentValue){
       // console.log(data)
       timerCount= new Date().getTime()
-      if(Math.abs(dataBuffer[0]-data)<40&&Math.abs(dataBuffer[1]-data)<40&&Math.abs(dataBuffer[2]-data)<40){
+      // if(Math.abs(dataBuffer[0]-data)<40&&Math.abs(dataBuffer[1]-data)<40&&Math.abs(dataBuffer[2]-data)<40){
         console.log("data:"+data)
         currentValue=data
-        if(reset&&Math.abs((dataBuffer[0]+dataBuffer[1]+dataBuffer[2])/3-dataBuffer[0]<5)){
-          reset=false
-          "reset interrupt"
-          dmxController.stopMotor()
-        }
+        gotSerialData = true;
+        // if(reset&&Math.abs((dataBuffer[0]+dataBuffer[1]+dataBuffer[2])/3-dataBuffer[0]<5)){
+        //   reset=false
+        //   "reset interrupt"
+        //   dmxController.stopMotor()
+        // }
         adjustKnob()
-      }
-      else{
-        console.log("garbage")
-      }
-      dataBuffer[2]=dataBuffer[1]
-      dataBuffer[1]=dataBuffer[0]
-      dataBuffer[0]=data
+      // }
+      // else{
+      //   console.log("garbage")
+      // }
+      // dataBuffer[2]=dataBuffer[1]
+      // dataBuffer[1]=dataBuffer[0]
+      // dataBuffer[0]=data
     }
   }
 }
