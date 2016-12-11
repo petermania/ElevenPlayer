@@ -966,7 +966,7 @@ function activateNumberTest(number, callback) {
 }
 function startMotor(currentEncoder,callback){
   if(currentEncoder>150){
-    var runTime = parseInt((currentEncoder*(.9+.11*(currentEncoder/3300))) * 2.424);
+    var runTime = parseInt(currentEncoder);
     console.log("runTime: ",runTime);
     var motorObj = {}
     motorObj[motorAddress] = 255;
@@ -977,7 +977,10 @@ function startMotor(currentEncoder,callback){
         stopMotor(callback)
     },runTime)
   }else{
-    stopMotor(callback)
+    if(typeof callback === "function"){
+      return callback();
+    }
+    //stopMotor(callback)
   }
 
 }

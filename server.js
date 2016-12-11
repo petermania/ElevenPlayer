@@ -46,7 +46,7 @@ var songpath=__dirname+'/public/music/'
 var timerCount=new Date().getTime()
 var currentTime=new Date().getTime()
 var reset=false
-var playable=false
+var playable=true
 var pause ={}
 var settings=[]
 var tracks = []
@@ -322,7 +322,7 @@ var loadSongs = function(db, callback){
 var checkTime = function(){
   currentTime = new Date().getTime()
   if(eleven==false){
-    if(currentTime-timerCount>knobTimer&&currentValue!=0&&reset==false){
+    if(currentTime-timerCount>knobTimer&&currentNumber!=0&&reset==false){
       resetKnob()
     }
   }
@@ -348,13 +348,31 @@ var resetKnob=function(){
     console.log("reset knob triggered")
     reset=true
     playable=false
-    if(motor) dmxController.startMotor(currentValue,function(){
-      if(currentNumber>=1&&currentValue>zero){
-        dmxController.startMotor(currentValue,function(){
-
-        })
-      }
-    })
+    console.log("booting: "+booting)
+    console.log("first trigger")
+    if(motor) {
+      var modifier
+      if (currentNumber<5) modifier=.69
+      else if(currentNumber>=5&&currentNumber<=7) modifier = .79
+      else modifier=.94
+      dmxController.startMotor(currentValue*(modifier+(1-modifier)*(currentValue/3300)) * 2.424, function(){
+        console.log("first callback")
+        if(currentNumber>=1&&currentValue>zero){
+          console.log("second trigger")
+          dmxController.startMotor(151,function(){
+            console.log("second callback")
+            reset=false
+            playable=true
+            eleven=false
+          })
+        }else{
+          console.log("no trigger")
+          reset=false
+          playable=true
+          eleven=false
+        }
+      })
+    }
     if(currentNumber!=0&&eleven==false) {
       for(var i=0;i<Object.keys(pause).length;i++){
         pause[Object.keys(pause)[i]].pause()
@@ -524,7 +542,11 @@ function playEleven(callback){
   currentNumber=11
   pause['eleven']=play(playback['eleven'],{loop:true})
   dmxController.activateEleven(function(){
-    dmxController.startMotor(currentValue)
+    var modifier=.94
+    dmxController.startMotor(currentValue*(modifier+(1-modifier)*(currentValue/3300)) * 2.424, function(){
+      eleven=false
+      reset=false
+    })
     pause['eleven'].pause()
     reset=true
     playable=false
@@ -567,6 +589,11 @@ function serialData(data){
         // }
         adjustKnob()
     }
+  }
+  else if(booting==true){
+    console.log("data:"+data)
+    currentValue=data
+    gotSerialData=true
   }
 }
 
