@@ -836,6 +836,81 @@ function activateNumber(number, callback) {
 
 function activateEleven(callback) {
     async.series({
+        // one: function(callback) {
+        //     //startBlockChase(2);
+        //     currentBlock = 1;
+        //     currentHue = 0;
+        //     blockChaseHueAdder = 32;
+        //     startAnimationFunction(function(){blockChase(94)});//startBlockChase(32)
+        //     setTimeout(function() {
+        //         clearInterval(mainInterval)
+        //         callback(null, 1)
+        //     }, 10000)
+        // },
+        // two: function(callback) {
+        //     //startBlockHueBlink()
+        //         //radiation(94, radiationDone());
+        //     startAnimationFunction(function(){blockHueBlink(94)});//blockHueBlink(94)
+        //     setTimeout(function() {
+        //         clearInterval(mainInterval)
+        //         callback(null, 2)
+        //     }, 8000)
+        // },
+        // three: function(callback) {
+        //     //startRadiation()
+        //     var blinkInterval = setInterval(function() {
+        //         onAllColor(Color({
+        //             r: 225,
+        //             g: 255,
+        //             b: 255
+        //         }))
+        //         fadeOff(200)
+        //     }, rickBeatTimer)
+        //     setTimeout(function() {
+        //         clearInterval(blinkInterval)
+        //         callback(null, 3)
+        //     }, 8000)
+        // },
+        // four: function(callback) {
+        //     //startRadiation()
+        //     //startRadiation(); //
+        //     //startBlockChase(2);
+        //     startAnimationFunction(function(){blockHueAlternateOff()});
+        //     setTimeout(function() {
+        //         clearInterval(mainInterval)
+        //         callback(null, 4)
+        //     }, 8000)
+        // },
+        // five: function(callback) {
+        //     //startRadiation()
+        //     //startBlockChase(32);
+        //     //startBlockChase(32);
+        //     startSparkleBlock();
+        //
+        //     setTimeout(function() {
+        //         clearInterval(mainInterval)
+        //         callback(null, 5)
+        //     }, 8000)
+        // },
+        // six: function(callback) {
+        //     //startRadiation()
+        //     startAnimationFunction(function(){blockHueAlternate()});
+        //     //startAnimationFunction(function(){startSparkleBlock()});
+        //     setTimeout(function() {
+        //         clearInterval(mainInterval)
+        //         callback(null, 6)
+        //     }, 8000)
+        // },
+        // seven: function(callback) {
+        //     //startRadiation()
+        //     //console.log("Starting vortex");
+        //     startBlockHue();
+        //     //startAnimationFunction(function(){startBlockHue()});
+        //     setTimeout(function() {
+        //         clearInterval(mainInterval)
+        //         callback(null, 7)
+        //     }, 8000)
+        // }
         one: function(callback) {
             //startBlockChase(2);
             currentBlock = 1;
@@ -845,7 +920,7 @@ function activateEleven(callback) {
             setTimeout(function() {
                 clearInterval(mainInterval)
                 callback(null, 1)
-            }, 10000)
+            }, 4000)
         },
         two: function(callback) {
             //startBlockHueBlink()
@@ -854,24 +929,9 @@ function activateEleven(callback) {
             setTimeout(function() {
                 clearInterval(mainInterval)
                 callback(null, 2)
-            }, 8000)
+            }, 4000)
         },
         three: function(callback) {
-            //startRadiation()
-            var blinkInterval = setInterval(function() {
-                onAllColor(Color({
-                    r: 225,
-                    g: 255,
-                    b: 255
-                }))
-                fadeOff(200)
-            }, rickBeatTimer)
-            setTimeout(function() {
-                clearInterval(blinkInterval)
-                callback(null, 3)
-            }, 8000)
-        },
-        four: function(callback) {
             //startRadiation()
             //startRadiation(); //
             //startBlockChase(2);
@@ -879,9 +939,9 @@ function activateEleven(callback) {
             setTimeout(function() {
                 clearInterval(mainInterval)
                 callback(null, 4)
-            }, 8000)
+            }, 4000)
         },
-        five: function(callback) {
+        four: function(callback) {
             //startRadiation()
             //startBlockChase(32);
             //startBlockChase(32);
@@ -890,26 +950,7 @@ function activateEleven(callback) {
             setTimeout(function() {
                 clearInterval(mainInterval)
                 callback(null, 5)
-            }, 8000)
-        },
-        six: function(callback) {
-            //startRadiation()
-            startAnimationFunction(function(){blockHueAlternate()});
-            //startAnimationFunction(function(){startSparkleBlock()});
-            setTimeout(function() {
-                clearInterval(mainInterval)
-                callback(null, 6)
-            }, 8000)
-        },
-        seven: function(callback) {
-            //startRadiation()
-            //console.log("Starting vortex");
-            startBlockHue();
-            //startAnimationFunction(function(){startBlockHue()});
-            setTimeout(function() {
-                clearInterval(mainInterval)
-                callback(null, 7)
-            }, 8000)
+            }, 2500)
         }
     }, function(err, results) {
         // results is now equal to: {one: 1, two: 2}
@@ -1092,7 +1133,8 @@ module.exports = {
     activateNumberTest:activateNumberTest,
     resetObj: resetObj,
     startMotor: startMotor,
-    stopMotor :stopMotor
+    stopMotor :stopMotor,
+    setHalo:setHalo
 }
 
 

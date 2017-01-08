@@ -7,7 +7,8 @@ var serialKnob=require('./serial_knob.js')
 var server = app.listen(8080,function(){
   console.log("listening on port 8080")
 })
-
+// 
+// var Color = require('color')
 var async = require('async')
 var dmxController = require('./dmxstrip.js')
 var play=require('audio-play')
@@ -83,6 +84,8 @@ function sendData(){
 }
 
 var setupSongs=function(){
+  // dmxController.setHalo(0,Color({r:0,g:0,b:255}))
+  // dmxController.setHalo(1,Color({r:0,g:0,b:255}))
   MongoClient.connect(url, function(err, db) {
     assert.equal(null, err)
     console.log("Connected successfully to db server to load songs")
