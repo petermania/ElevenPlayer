@@ -7,7 +7,7 @@ var serialKnob=require('./serial_knob.js')
 var server = app.listen(8080,function(){
   console.log("listening on port 8080")
 })
-// 
+//
 // var Color = require('color')
 var async = require('async')
 var dmxController = require('./dmxstrip.js')
@@ -355,9 +355,15 @@ var resetKnob=function(){
     console.log("first trigger")
     if(motor) {
       var modifier
-      if (currentNumber<5) modifier=.69
-      else if(currentNumber>=5&&currentNumber<=7) modifier = .79
-      else modifier=.94
+      if (currentNumber<3) modifier=.4
+      else if(currentNumber==3) modifier=.45
+      else if(currentNumber==4) modifier=.5
+      else if(currentNumber==5) modifier=.6
+      else if(currentNumber==6) modifier=.67
+      else if(currentNumber==7) modifier=.71
+      else if(currentNumber==8) modifier=.72
+      else if(currentNumber==9) modifier=.79
+      else modifier=.83
       dmxController.startMotor(currentValue*(modifier+(1-modifier)*(currentValue/3300)) * 2.424, function(){
         console.log("first callback")
         if(currentNumber>=1&&currentValue>zero){
@@ -544,16 +550,17 @@ function playEleven(callback){
   }
   currentNumber=11
   pause['eleven']=play(playback['eleven'],{loop:true})
+
   dmxController.activateEleven(function(){
-    var modifier=.94
-    dmxController.startMotor(currentValue*(modifier+(1-modifier)*(currentValue/3300)) * 2.424, function(){
-      eleven=false
-      reset=false
-    })
+    var modifier=.8
     pause['eleven'].pause()
     reset=true
     playable=false
-    callback()
+    dmxController.startMotor(7500, function(){
+      eleven=false
+      playable=true
+      reset=false
+    })
   })
 }
 
